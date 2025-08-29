@@ -1,0 +1,92 @@
+# Node.js and build-related
+node_modules/
+dist/
+build/
+out/
+coverage/
+public/
+.next/
+.cache/
+tmp/
+temp/
+
+# Dependency lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+bun.lockb
+
+# Generated files
+*.min.js
+*.min.css
+*.bundle.js
+*.map
+
+# Common data/config files
+*.log
+*.env
+*.env.*
+.envrc
+.env.local
+.env.development
+.env.production
+.env.test
+.env.example
+*.md
+*.yaml
+*.yml
+*.json
+*.lock
+
+# Common project-specific directories
+vendor/
+lib/
+libs/
+third_party/
+third-party/
+
+# Minified or compiled assets
+assets/**/*.min.*
+static/**/*.min.*
+
+# Documentation and configuration
+CHANGELOG
+LICENSE
+README.md
+docs/
+*.md
+
+# Test-related
+tests/
+__tests__
+test/
+*.test.*
+*.spec.*
+
+# Version control
+.git/
+.gitignore
+.gitattributes
+
+# Editor and OS files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+
+# Build tool configurations
+babel.config.js
+webpack.config.js
+rollup.config.js
+vite.config.js
+esbuild.config.js
+tsconfig.json
+jsconfig.json
+
+# Miscellaneous
+*.bak
+*.swp
+*.swo
+*.tmp
