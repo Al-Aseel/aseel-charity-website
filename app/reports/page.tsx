@@ -1,12 +1,13 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { motion } from "framer-motion"
-import { Download, Calendar, FileText, Eye, Filter } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { useLanguage } from "@/components/language-provider"
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Download, Calendar, FileText, Eye, Filter } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useLanguage } from "@/components/language-provider";
+import PartnersSection from "@/components/partners-section";
 
 const reports = [
   {
@@ -117,43 +118,46 @@ const reports = [
     viewUrl: "#",
     image: "/placeholder.svg?height=300&width=400",
   },
-]
+];
 
 const reportTypes = [
   { id: "all", name: { ar: "جميع التقارير", en: "All Reports" } },
-  { id: "administrative", name: { ar: "التقارير الإدارية", en: "Administrative Reports" } },
+  {
+    id: "administrative",
+    name: { ar: "التقارير الإدارية", en: "Administrative Reports" },
+  },
   { id: "media", name: { ar: "التقارير الإعلامية", en: "Media Reports" } },
-]
+];
 
 export default function ReportsPage() {
-  const [selectedType, setSelectedType] = useState("all")
-  const { language, t } = useLanguage()
+  const [selectedType, setSelectedType] = useState("all");
+  const { language, t } = useLanguage();
 
   const filteredReports = reports.filter((report) => {
-    return selectedType === "all" || report.type === selectedType
-  })
+    return selectedType === "all" || report.type === selectedType;
+  });
 
   const getTypeColor = (type: string) => {
     switch (type) {
       case "administrative":
-        return "bg-blue-100 text-blue-800"
+        return "bg-blue-100 text-blue-800";
       case "media":
-        return "bg-green-100 text-green-800"
+        return "bg-green-100 text-green-800";
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   const getTypeName = (type: string) => {
     switch (type) {
       case "administrative":
-        return language === "ar" ? "إداري" : "Administrative"
+        return language === "ar" ? "إداري" : "Administrative";
       case "media":
-        return language === "ar" ? "إعلامي" : "Media"
+        return language === "ar" ? "إعلامي" : "Media";
       default:
-        return type
+        return type;
     }
-  }
+  };
 
   return (
     <div className="min-h-screen">
@@ -166,7 +170,9 @@ export default function ReportsPage() {
             transition={{ duration: 0.6 }}
             className="text-center"
           >
-            <h1 className="text-4xl md:text-5xl font-bold mb-6">{t("reports.title")}</h1>
+            <h1 className="text-4xl md:text-5xl font-bold mb-6">
+              {t("reports.title")}
+            </h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               {language === "ar"
                 ? "تصفح وحمل التقارير الإدارية والمالية والإعلامية للجمعية"
@@ -182,7 +188,9 @@ export default function ReportsPage() {
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
             <div className="flex items-center gap-2">
               <Filter className="w-5 h-5 text-muted-foreground" />
-              <span className="font-medium">{language === "ar" ? "فلترة التقارير:" : "Filter Reports:"}</span>
+              <span className="font-medium">
+                {language === "ar" ? "فلترة التقارير:" : "Filter Reports:"}
+              </span>
             </div>
 
             <div className="flex flex-wrap gap-2">
@@ -221,26 +229,37 @@ export default function ReportsPage() {
                       className="w-full h-full object-cover"
                     />
                     <div className="absolute top-4 left-4 rtl:right-4 rtl:left-auto">
-                      <Badge className={getTypeColor(report.type)}>{getTypeName(report.type)}</Badge>
+                      <Badge className={getTypeColor(report.type)}>
+                        {getTypeName(report.type)}
+                      </Badge>
                     </div>
                   </div>
 
                   <CardHeader>
-                    <CardTitle className="text-lg leading-tight">{report.title[language]}</CardTitle>
-                    <p className="text-muted-foreground text-sm line-clamp-2">{report.description[language]}</p>
+                    <CardTitle className="text-lg leading-tight">
+                      {report.title[language]}
+                    </CardTitle>
+                    <p className="text-muted-foreground text-sm line-clamp-2">
+                      {report.description[language]}
+                    </p>
                   </CardHeader>
 
                   <CardContent>
                     <div className="space-y-3 mb-4">
                       <div className="flex items-center text-sm text-muted-foreground">
                         <Calendar className="w-4 h-4 mr-2 rtl:ml-2 rtl:mr-0" />
-                        <span>{new Date(report.date).toLocaleDateString(language === "ar" ? "ar-EG" : "en-US")}</span>
+                        <span>
+                          {new Date(report.date).toLocaleDateString(
+                            language === "ar" ? "ar-EG" : "en-US"
+                          )}
+                        </span>
                       </div>
 
                       <div className="flex items-center text-sm text-muted-foreground">
                         <FileText className="w-4 h-4 mr-2 rtl:ml-2 rtl:mr-0" />
                         <span>
-                          {report.pages} {language === "ar" ? "صفحة" : "pages"} • {report.size}
+                          {report.pages} {language === "ar" ? "صفحة" : "pages"}{" "}
+                          • {report.size}
                         </span>
                       </div>
                     </div>
@@ -252,8 +271,17 @@ export default function ReportsPage() {
                           {t("common.download")}
                         </a>
                       </Button>
-                      <Button size="sm" variant="outline" className="flex-1 bg-transparent" asChild>
-                        <a href={report.viewUrl} target="_blank" rel="noopener noreferrer">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1 bg-transparent"
+                        asChild
+                      >
+                        <a
+                          href={report.viewUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
                           <Eye className="w-4 h-4 mr-1 rtl:ml-1 rtl:mr-0" />
                           {language === "ar" ? "عرض" : "View"}
                         </a>
@@ -266,14 +294,23 @@ export default function ReportsPage() {
           </div>
 
           {filteredReports.length === 0 && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-12"
+            >
               <p className="text-muted-foreground text-lg">
-                {language === "ar" ? "لا توجد تقارير تطابق المعايير المحددة" : "No reports match the selected criteria"}
+                {language === "ar"
+                  ? "لا توجد تقارير تطابق المعايير المحددة"
+                  : "No reports match the selected criteria"}
               </p>
             </motion.div>
           )}
         </div>
       </section>
+
+      {/* Partners Section */}
+      <PartnersSection />
     </div>
-  )
+  );
 }

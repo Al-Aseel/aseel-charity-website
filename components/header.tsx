@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useLanguage } from "@/components/language-provider";
+import { useSettings } from "@/components/settings-provider";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 
@@ -16,6 +17,7 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState("");
   const pathname = usePathname();
   const { language, setLanguage, t } = useLanguage();
+  const { getLogoUrl, getWebsiteName } = useSettings();
 
   const navigation = [
     { name: t("nav.home"), href: "/" },
@@ -40,14 +42,14 @@ export default function Header() {
             className="flex items-center space-x-2 rtl:space-x-reverse"
           >
             <Image
-              src="/logo.jpg"
-              alt="جمعية أصيل"
+              src={getLogoUrl()}
+              alt={getWebsiteName("ar")}
               width={60}
               height={60}
               className="rounded-full"
             />
             <span className="font-bold text-lg">
-              {language === "ar" ? "جمعية أصيل الخيرية " : "Aseel Association"}
+              {getWebsiteName(language)}
             </span>
           </Link>
 

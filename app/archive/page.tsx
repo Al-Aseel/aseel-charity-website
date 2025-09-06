@@ -1,14 +1,15 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { motion } from "framer-motion"
-import { Filter, Calendar, Search, Grid, List } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { useLanguage } from "@/components/language-provider"
-import Link from "next/link"
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Filter, Calendar, Search, Grid, List } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { useLanguage } from "@/components/language-provider";
+import PartnersSection from "@/components/partners-section";
+import Link from "next/link";
 
 const archiveItems = [
   {
@@ -107,7 +108,7 @@ const archiveItems = [
     year: "2022",
     image: "/placeholder.svg?height=300&width=400",
   },
-]
+];
 
 const contentTypes = [
   { id: "all", name: { ar: "جميع الأنواع", en: "All Types" } },
@@ -117,7 +118,7 @@ const contentTypes = [
   { id: "program", name: { ar: "برامج", en: "Programs" } },
   { id: "event", name: { ar: "فعاليات", en: "Events" } },
   { id: "exhibition", name: { ar: "معارض", en: "Exhibitions" } },
-]
+];
 
 const categories = [
   { id: "all", name: { ar: "جميع الفئات", en: "All Categories" } },
@@ -127,22 +128,22 @@ const categories = [
   { id: "education", name: { ar: "تعليم", en: "Education" } },
   { id: "health", name: { ar: "صحة", en: "Health" } },
   { id: "empowerment", name: { ar: "تمكين", en: "Empowerment" } },
-]
+];
 
 const years = [
   { id: "all", name: { ar: "جميع السنوات", en: "All Years" } },
   { id: "2023", name: { ar: "2023", en: "2023" } },
   { id: "2022", name: { ar: "2022", en: "2022" } },
   { id: "2021", name: { ar: "2021", en: "2021" } },
-]
+];
 
 export default function ArchivePage() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [selectedType, setSelectedType] = useState("all")
-  const [selectedCategory, setSelectedCategory] = useState("all")
-  const [selectedYear, setSelectedYear] = useState("all")
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
-  const { language, t } = useLanguage()
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedType, setSelectedType] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedYear, setSelectedYear] = useState("all");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const { language, t } = useLanguage();
 
   const filteredItems = archiveItems.filter((item) => {
     const searchMatch =
@@ -150,14 +151,15 @@ export default function ArchivePage() {
       item.title.ar.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.title.en.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.description.ar.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description.en.toLowerCase().includes(searchQuery.toLowerCase())
+      item.description.en.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const typeMatch = selectedType === "all" || item.type === selectedType
-    const categoryMatch = selectedCategory === "all" || item.category === selectedCategory
-    const yearMatch = selectedYear === "all" || item.year === selectedYear
+    const typeMatch = selectedType === "all" || item.type === selectedType;
+    const categoryMatch =
+      selectedCategory === "all" || item.category === selectedCategory;
+    const yearMatch = selectedYear === "all" || item.year === selectedYear;
 
-    return searchMatch && typeMatch && categoryMatch && yearMatch
-  })
+    return searchMatch && typeMatch && categoryMatch && yearMatch;
+  });
 
   const getTypeColor = (type: string) => {
     const colors = {
@@ -167,14 +169,14 @@ export default function ArchivePage() {
       program: "bg-green-100 text-green-800",
       event: "bg-yellow-100 text-yellow-800",
       exhibition: "bg-pink-100 text-pink-800",
-    }
-    return colors[type as keyof typeof colors] || "bg-gray-100 text-gray-800"
-  }
+    };
+    return colors[type as keyof typeof colors] || "bg-gray-100 text-gray-800";
+  };
 
   const getTypeName = (type: string) => {
-    const typeObj = contentTypes.find((t) => t.id === type)
-    return typeObj ? typeObj.name[language] : type
-  }
+    const typeObj = contentTypes.find((t) => t.id === type);
+    return typeObj ? typeObj.name[language] : type;
+  };
 
   return (
     <div className="min-h-screen">
@@ -187,7 +189,9 @@ export default function ArchivePage() {
             transition={{ duration: 0.6 }}
             className="text-center"
           >
-            <h1 className="text-4xl md:text-5xl font-bold mb-6">{t("archive.title")}</h1>
+            <h1 className="text-4xl md:text-5xl font-bold mb-6">
+              {t("archive.title")}
+            </h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               {language === "ar"
                 ? "استعرض أرشيف شامل لجميع أنشطة ومشاريع الجمعية عبر السنوات"
@@ -205,7 +209,9 @@ export default function ArchivePage() {
             <div className="max-w-md mx-auto relative">
               <Search className="absolute left-3 rtl:right-3 rtl:left-auto top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
-                placeholder={language === "ar" ? "ابحث في الأرشيف..." : "Search archive..."}
+                placeholder={
+                  language === "ar" ? "ابحث في الأرشيف..." : "Search archive..."
+                }
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 rtl:pr-10 rtl:pl-3"
@@ -237,12 +243,16 @@ export default function ArchivePage() {
 
             {/* Category Filter */}
             <div className="flex-1">
-              <h3 className="font-medium mb-3">{language === "ar" ? "الفئة:" : "Category:"}</h3>
+              <h3 className="font-medium mb-3">
+                {language === "ar" ? "الفئة:" : "Category:"}
+              </h3>
               <div className="flex flex-wrap gap-2">
                 {categories.map((category) => (
                   <Button
                     key={category.id}
-                    variant={selectedCategory === category.id ? "default" : "outline"}
+                    variant={
+                      selectedCategory === category.id ? "default" : "outline"
+                    }
                     size="sm"
                     onClick={() => setSelectedCategory(category.id)}
                   >
@@ -254,7 +264,9 @@ export default function ArchivePage() {
 
             {/* Year Filter */}
             <div className="flex-1">
-              <h3 className="font-medium mb-3">{language === "ar" ? "السنة:" : "Year:"}</h3>
+              <h3 className="font-medium mb-3">
+                {language === "ar" ? "السنة:" : "Year:"}
+              </h3>
               <div className="flex flex-wrap gap-2">
                 {years.map((year) => (
                   <Button
@@ -273,7 +285,9 @@ export default function ArchivePage() {
           {/* View Mode Toggle */}
           <div className="flex justify-between items-center">
             <p className="text-muted-foreground">
-              {language === "ar" ? `تم العثور على ${filteredItems.length} عنصر` : `Found ${filteredItems.length} items`}
+              {language === "ar"
+                ? `تم العثور على ${filteredItems.length} عنصر`
+                : `Found ${filteredItems.length} items`}
             </p>
             <div className="flex gap-2">
               <Button
@@ -299,7 +313,13 @@ export default function ArchivePage() {
       <section className="py-16">
         <div className="container mx-auto px-4">
           {filteredItems.length > 0 ? (
-            <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" : "space-y-6"}>
+            <div
+              className={
+                viewMode === "grid"
+                  ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+                  : "space-y-6"
+              }
+            >
               {filteredItems.map((item, index) => (
                 <motion.div
                   key={item.id}
@@ -316,24 +336,34 @@ export default function ArchivePage() {
                           className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                         />
                         <div className="absolute top-4 left-4 rtl:right-4 rtl:left-auto">
-                          <Badge className={getTypeColor(item.type)}>{getTypeName(item.type)}</Badge>
+                          <Badge className={getTypeColor(item.type)}>
+                            {getTypeName(item.type)}
+                          </Badge>
                         </div>
                       </div>
                       <CardHeader>
-                        <CardTitle className="text-lg leading-tight">{item.title[language]}</CardTitle>
+                        <CardTitle className="text-lg leading-tight">
+                          {item.title[language]}
+                        </CardTitle>
                         <div className="flex items-center text-sm text-muted-foreground">
                           <Calendar className="w-4 h-4 mr-1 rtl:ml-1 rtl:mr-0" />
-                          {new Date(item.date).toLocaleDateString(language === "ar" ? "ar-EG" : "en-US")}
+                          {new Date(item.date).toLocaleDateString(
+                            language === "ar" ? "ar-EG" : "en-US"
+                          )}
                         </div>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-muted-foreground text-sm line-clamp-3">{item.description[language]}</p>
+                        <p className="text-muted-foreground text-sm line-clamp-3">
+                          {item.description[language]}
+                        </p>
                         <Button
                           variant="ghost"
                           className="p-0 h-auto font-medium text-primary hover:text-primary/80 mt-3"
                           asChild
                         >
-                          <Link href={`/archive/${item.id}`}>{t("common.read-more")}</Link>
+                          <Link href={`/archive/${item.id}`}>
+                            {t("common.read-more")}
+                          </Link>
                         </Button>
                       </CardContent>
                     </Card>
@@ -355,14 +385,18 @@ export default function ArchivePage() {
                                   {item.title[language]}
                                 </h3>
                               </Link>
-                              <Badge className={getTypeColor(item.type)}>{getTypeName(item.type)}</Badge>
+                              <Badge className={getTypeColor(item.type)}>
+                                {getTypeName(item.type)}
+                              </Badge>
                             </div>
                             <p className="text-muted-foreground text-sm mb-2 line-clamp-2">
                               {item.description[language]}
                             </p>
                             <div className="flex items-center text-sm text-muted-foreground">
                               <Calendar className="w-4 h-4 mr-1 rtl:ml-1 rtl:mr-0" />
-                              {new Date(item.date).toLocaleDateString(language === "ar" ? "ar-EG" : "en-US")}
+                              {new Date(item.date).toLocaleDateString(
+                                language === "ar" ? "ar-EG" : "en-US"
+                              )}
                             </div>
                           </div>
                         </div>
@@ -373,9 +407,15 @@ export default function ArchivePage() {
               ))}
             </div>
           ) : (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-12"
+            >
               <Search className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">{language === "ar" ? "لا توجد نتائج" : "No results found"}</h3>
+              <h3 className="text-xl font-semibold mb-2">
+                {language === "ar" ? "لا توجد نتائج" : "No results found"}
+              </h3>
               <p className="text-muted-foreground">
                 {language === "ar"
                   ? "جرب تعديل معايير البحث أو الفلاتر"
@@ -385,6 +425,9 @@ export default function ArchivePage() {
           )}
         </div>
       </section>
+
+      {/* Partners Section */}
+      <PartnersSection />
     </div>
-  )
+  );
 }

@@ -1,16 +1,17 @@
-"use client"
+"use client";
 
-import React from "react"
+import React from "react";
 
-import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
-import { Search, Filter, Calendar, FileText, Users, Award } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { useLanguage } from "@/components/language-provider"
-import { useSearchParams } from "next/navigation"
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { Search, Filter, Calendar, FileText, Users, Award } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { useLanguage } from "@/components/language-provider";
+import PartnersSection from "@/components/partners-section";
+import { useSearchParams } from "next/navigation";
 
 // Mock search data
 const searchData = [
@@ -84,14 +85,18 @@ const searchData = [
     date: "2022-06-01",
     category: "empowerment",
   },
-]
+];
 
 const contentTypes = [
-  { id: "all", name: { ar: "جميع المحتويات", en: "All Content" }, icon: FileText },
+  {
+    id: "all",
+    name: { ar: "جميع المحتويات", en: "All Content" },
+    icon: FileText,
+  },
   { id: "news", name: { ar: "الأخبار", en: "News" }, icon: FileText },
   { id: "program", name: { ar: "البرامج", en: "Programs" }, icon: Users },
   { id: "report", name: { ar: "التقارير", en: "Reports" }, icon: Award },
-]
+];
 
 const categories = [
   { id: "all", name: { ar: "جميع الفئات", en: "All Categories" } },
@@ -99,75 +104,76 @@ const categories = [
   { id: "training", name: { ar: "تدريب", en: "Training" } },
   { id: "empowerment", name: { ar: "تمكين", en: "Empowerment" } },
   { id: "administrative", name: { ar: "إداري", en: "Administrative" } },
-]
+];
 
 export default function SearchPage() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [selectedType, setSelectedType] = useState("all")
-  const [selectedCategory, setSelectedCategory] = useState("all")
-  const [searchResults, setSearchResults] = useState(searchData)
-  const { language, t } = useLanguage()
-  const searchParams = useSearchParams()
-  const queryParam = searchParams.get("q") ?? ""
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedType, setSelectedType] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [searchResults, setSearchResults] = useState(searchData);
+  const { language, t } = useLanguage();
+  const searchParams = useSearchParams();
+  const queryParam = searchParams.get("q") ?? "";
 
   useEffect(() => {
     // لا تحدّث الحالة إلا إذا اختلفت قيمة معلمة q عن قيمة الحقل الحالي
     if (queryParam !== searchQuery) {
-      setSearchQuery(queryParam)
-      performSearch(queryParam)
+      setSearchQuery(queryParam);
+      performSearch(queryParam);
     }
     // الاعتماد على قيمة queryParam فقط يضمن عدم الدخول في حلقة تحديث غير منتهية
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [queryParam])
+  }, [queryParam]);
 
   const performSearch = (query: string) => {
     if (!query.trim()) {
-      setSearchResults(searchData)
-      return
+      setSearchResults(searchData);
+      return;
     }
 
     const filtered = searchData.filter((item) => {
       const titleMatch =
         item.title.ar.toLowerCase().includes(query.toLowerCase()) ||
-        item.title.en.toLowerCase().includes(query.toLowerCase())
+        item.title.en.toLowerCase().includes(query.toLowerCase());
       const excerptMatch =
         item.excerpt.ar.toLowerCase().includes(query.toLowerCase()) ||
-        item.excerpt.en.toLowerCase().includes(query.toLowerCase())
-      const typeMatch = selectedType === "all" || item.type === selectedType
-      const categoryMatch = selectedCategory === "all" || item.category === selectedCategory
+        item.excerpt.en.toLowerCase().includes(query.toLowerCase());
+      const typeMatch = selectedType === "all" || item.type === selectedType;
+      const categoryMatch =
+        selectedCategory === "all" || item.category === selectedCategory;
 
-      return (titleMatch || excerptMatch) && typeMatch && categoryMatch
-    })
+      return (titleMatch || excerptMatch) && typeMatch && categoryMatch;
+    });
 
-    setSearchResults(filtered)
-  }
+    setSearchResults(filtered);
+  };
 
   const handleSearch = () => {
-    performSearch(searchQuery)
-  }
+    performSearch(searchQuery);
+  };
 
   const getTypeIcon = (type: string) => {
-    const typeObj = contentTypes.find((t) => t.id === type)
-    return typeObj ? typeObj.icon : FileText
-  }
+    const typeObj = contentTypes.find((t) => t.id === type);
+    return typeObj ? typeObj.icon : FileText;
+  };
 
   const getTypeColor = (type: string) => {
     switch (type) {
       case "news":
-        return "bg-blue-100 text-blue-800"
+        return "bg-blue-100 text-blue-800";
       case "program":
-        return "bg-green-100 text-green-800"
+        return "bg-green-100 text-green-800";
       case "report":
-        return "bg-purple-100 text-purple-800"
+        return "bg-purple-100 text-purple-800";
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   const getTypeName = (type: string) => {
-    const typeObj = contentTypes.find((t) => t.id === type)
-    return typeObj ? typeObj.name[language] : type
-  }
+    const typeObj = contentTypes.find((t) => t.id === type);
+    return typeObj ? typeObj.name[language] : type;
+  };
 
   return (
     <div className="min-h-screen">
@@ -180,7 +186,9 @@ export default function SearchPage() {
             transition={{ duration: 0.6 }}
             className="text-center"
           >
-            <h1 className="text-4xl md:text-5xl font-bold mb-6">{t("nav.search")}</h1>
+            <h1 className="text-4xl md:text-5xl font-bold mb-6">
+              {t("nav.search")}
+            </h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
               {language === "ar"
                 ? "ابحث في جميع محتويات الموقع من أخبار وبرامج وتقارير"
@@ -224,8 +232,8 @@ export default function SearchPage() {
                     variant={selectedType === type.id ? "default" : "outline"}
                     size="sm"
                     onClick={() => {
-                      setSelectedType(type.id)
-                      performSearch(searchQuery)
+                      setSelectedType(type.id);
+                      performSearch(searchQuery);
                     }}
                     className="flex items-center"
                   >
@@ -238,16 +246,20 @@ export default function SearchPage() {
 
             {/* Category Filter */}
             <div className="flex-1">
-              <h3 className="font-medium mb-3">{language === "ar" ? "الفئة:" : "Category:"}</h3>
+              <h3 className="font-medium mb-3">
+                {language === "ar" ? "الفئة:" : "Category:"}
+              </h3>
               <div className="flex flex-wrap gap-2">
                 {categories.map((category) => (
                   <Button
                     key={category.id}
-                    variant={selectedCategory === category.id ? "default" : "outline"}
+                    variant={
+                      selectedCategory === category.id ? "default" : "outline"
+                    }
                     size="sm"
                     onClick={() => {
-                      setSelectedCategory(category.id)
-                      performSearch(searchQuery)
+                      setSelectedCategory(category.id);
+                      performSearch(searchQuery);
                     }}
                   >
                     {category.name[language]}
@@ -291,10 +303,14 @@ export default function SearchPage() {
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
-                            <Badge className={getTypeColor(result.type)}>{getTypeName(result.type)}</Badge>
+                            <Badge className={getTypeColor(result.type)}>
+                              {getTypeName(result.type)}
+                            </Badge>
                             <div className="flex items-center text-sm text-muted-foreground">
                               <Calendar className="w-4 h-4 mr-1 rtl:ml-1 rtl:mr-0" />
-                              {new Date(result.date).toLocaleDateString(language === "ar" ? "ar-EG" : "en-US")}
+                              {new Date(result.date).toLocaleDateString(
+                                language === "ar" ? "ar-EG" : "en-US"
+                              )}
                             </div>
                           </div>
                           <CardTitle className="text-xl hover:text-primary cursor-pointer">
@@ -309,8 +325,13 @@ export default function SearchPage() {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-muted-foreground mb-4">{result.excerpt[language]}</p>
-                      <Button variant="ghost" className="p-0 h-auto font-medium text-primary hover:text-primary/80">
+                      <p className="text-muted-foreground mb-4">
+                        {result.excerpt[language]}
+                      </p>
+                      <Button
+                        variant="ghost"
+                        className="p-0 h-auto font-medium text-primary hover:text-primary/80"
+                      >
                         {t("common.read-more")}
                       </Button>
                     </CardContent>
@@ -319,9 +340,15 @@ export default function SearchPage() {
               ))}
             </div>
           ) : (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-12"
+            >
               <Search className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">{t("search.no-results")}</h3>
+              <h3 className="text-xl font-semibold mb-2">
+                {t("search.no-results")}
+              </h3>
               <p className="text-muted-foreground">
                 {language === "ar"
                   ? "جرب استخدام كلمات مفتاحية مختلفة أو تعديل الفلاتر"
@@ -331,6 +358,9 @@ export default function SearchPage() {
           )}
         </div>
       </section>
+
+      {/* Partners Section */}
+      <PartnersSection />
     </div>
-  )
+  );
 }

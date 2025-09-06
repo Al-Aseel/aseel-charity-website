@@ -1,9 +1,10 @@
-"use client"
+"use client";
 
-import { motion } from "framer-motion"
-import { Target, Eye, Heart, Users, Award, Globe } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useLanguage } from "@/components/language-provider"
+import { motion } from "framer-motion";
+import { Target, Eye, Heart, Users, Award, Globe } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useLanguage } from "@/components/language-provider";
+import PartnersSection from "@/components/partners-section";
 
 const values = [
   {
@@ -50,10 +51,10 @@ const values = [
       en: "We focus on sustainable development and long-term solutions",
     },
   },
-]
+];
 
 export default function AboutPage() {
-  const { language, t } = useLanguage()
+  const { language, t } = useLanguage();
 
   return (
     <div className="min-h-screen">
@@ -66,7 +67,9 @@ export default function AboutPage() {
             transition={{ duration: 0.6 }}
             className="text-center"
           >
-            <h1 className="text-4xl md:text-5xl font-bold mb-6">{t("about.title")}</h1>
+            <h1 className="text-4xl md:text-5xl font-bold mb-6">
+              {t("about.title")}
+            </h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               {language === "ar"
                 ? "جمعية أصيل للتنمية الخيرية هي مؤسسة أهلية غير ربحية تعمل في فلسطين لتمكين الفئات المهمشة ودعم صمود المجتمع الفلسطيني"
@@ -90,7 +93,9 @@ export default function AboutPage() {
                 <CardHeader>
                   <div className="flex items-center mb-4">
                     <Eye className="w-8 h-8 text-primary mr-3 rtl:ml-3 rtl:mr-0" />
-                    <CardTitle className="text-2xl">{t("about.vision.title")}</CardTitle>
+                    <CardTitle className="text-2xl">
+                      {t("about.vision.title")}
+                    </CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -113,7 +118,9 @@ export default function AboutPage() {
                 <CardHeader>
                   <div className="flex items-center mb-4">
                     <Target className="w-8 h-8 text-primary mr-3 rtl:ml-3 rtl:mr-0" />
-                    <CardTitle className="text-2xl">{t("about.mission.title")}</CardTitle>
+                    <CardTitle className="text-2xl">
+                      {t("about.mission.title")}
+                    </CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -139,7 +146,9 @@ export default function AboutPage() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">{t("about.values.title")}</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              {t("about.values.title")}
+            </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               {language === "ar"
                 ? "القيم الأساسية التي توجه عملنا وتحدد هويتنا المؤسسية"
@@ -163,10 +172,14 @@ export default function AboutPage() {
                         <value.icon className="w-8 h-8 text-primary" />
                       </div>
                     </div>
-                    <CardTitle className="text-xl">{value.title[language]}</CardTitle>
+                    <CardTitle className="text-xl">
+                      {value.title[language]}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-muted-foreground">{value.description[language]}</p>
+                    <p className="text-muted-foreground">
+                      {value.description[language]}
+                    </p>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -186,7 +199,9 @@ export default function AboutPage() {
             className="text-center mb-12"
           >
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              {language === "ar" ? "الهيكل التنظيمي" : "Organizational Structure"}
+              {language === "ar"
+                ? "الهيكل التنظيمي"
+                : "Organizational Structure"}
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               {language === "ar"
@@ -205,13 +220,20 @@ export default function AboutPage() {
             >
               <img
                 src="/placeholder.svg?height=400&width=800"
-                alt={language === "ar" ? "الهيكل التنظيمي" : "Organizational Structure"}
+                alt={
+                  language === "ar"
+                    ? "الهيكل التنظيمي"
+                    : "Organizational Structure"
+                }
                 className="w-full h-auto rounded-lg"
               />
             </motion.div>
           </div>
         </div>
       </section>
+
+      {/* Partners Section */}
+      <PartnersSection />
     </div>
-  )
+  );
 }

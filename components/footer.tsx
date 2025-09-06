@@ -5,20 +5,25 @@ import {
   Facebook,
   Twitter,
   Instagram,
+  Youtube,
   Mail,
   Phone,
   MapPin,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
+import { useSettings } from "@/components/settings-provider";
 import Image from "next/image";
 export default function Footer() {
   const { language, t } = useLanguage();
+  const { settings, getLogoUrl, getWebsiteName, getDescription } =
+    useSettings();
 
   const socialLinks = [
-    { icon: Facebook, href: "#", label: "Facebook" },
-    { icon: Twitter, href: "#", label: "Twitter" },
-    { icon: Instagram, href: "#", label: "Instagram" },
-  ];
+    { icon: Facebook, href: settings?.facebook, label: "Facebook" },
+    { icon: Twitter, href: settings?.twitter, label: "Twitter" },
+    { icon: Instagram, href: settings?.instagram, label: "Instagram" },
+    { icon: Youtube, href: settings?.youtube, label: "YouTube" },
+  ].filter((link) => link.href && link.href.trim() !== "");
 
   const quickLinks = [
     { name: t("nav.about"), href: "/about" },
@@ -40,22 +45,18 @@ export default function Footer() {
                 className="flex items-center space-x-2 rtl:space-x-reverse"
               >
                 <Image
-                  src="/logo.jpg"
-                  alt="جمعية أصيل"
+                  src={getLogoUrl()}
+                  alt={getWebsiteName("ar")}
                   width={50}
                   height={50}
                   className="rounded-full"
                 />
                 <span className="font-bold text-lg hidden sm:inline-block">
-                  {language === "ar" ? " جمعية أصيل" : "Aseel Association"}
+                  {getWebsiteName(language)}
                 </span>
               </Link>
             </div>
-            <p className="text-sm text-muted-foreground">
-              {language === "ar"
-                ? "مؤسسة أهلية غير ربحية تعمل في فلسطين لتمكين الفئات المهمشة ودعم صمود المجتمع الفلسطيني"
-                : "A non-profit civil institution working in Palestine to empower marginalized groups and support Palestinian community resilience"}
-            </p>
+            <p className="text-sm text-muted-foreground">{getDescription()}</p>
           </div>
 
           {/* Quick Links */}
@@ -86,16 +87,19 @@ export default function Footer() {
               <div className="flex items-center space-x-2 rtl:space-x-reverse text-sm text-muted-foreground">
                 <MapPin className="h-4 w-4" />
                 <span>
-                  {language === "ar" ? "غزة، فلسطين" : "Gaza, Palestine"}
+                  {settings?.address ||
+                    (language === "ar" ? "غزة، فلسطين" : "Gaza, Palestine")}
                 </span>
               </div>
               <div className="flex items-center space-x-2 rtl:space-x-reverse text-sm text-muted-foreground">
                 <Phone className="h-4 w-4" />
-                <span dir="ltr">+970 59112233</span>
+                <span dir="ltr">
+                  {settings?.contactNumber || "+970 59112233"}
+                </span>
               </div>
               <div className="flex items-center space-x-2 rtl:space-x-reverse text-sm text-muted-foreground">
                 <Mail className="h-4 w-4" />
-                <span>info@aseel-charity.org</span>
+                <span>{settings?.email || "info@aseel-charity.org"}</span>
               </div>
             </div>
           </div>
@@ -122,8 +126,8 @@ export default function Footer() {
         <div className="border-t mt-8 pt-8 text-center">
           <p className="text-sm text-muted-foreground">
             {language === "ar"
-              ? `© ${new Date().getFullYear()} جمعية أصيل للتنمية الخيرية. جميع الحقوق محفوظة.`
-              : `© ${new Date().getFullYear()} Aseel Charitable Development Association. All rights reserved.`}
+              ? `© ${new Date().getFullYear()} ${getWebsiteName("ar")}. جميع الحقوق محفوظة.`
+              : `© ${new Date().getFullYear()} ${getWebsiteName("en")}. All rights reserved.`}
           </p>
         </div>
       </div>

@@ -1,13 +1,14 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { motion } from "framer-motion"
-import { Filter, Calendar, MapPin, Users, Target } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { useLanguage } from "@/components/language-provider"
-import Link from "next/link"
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Filter, Calendar, MapPin, Users, Target } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useLanguage } from "@/components/language-provider";
+import PartnersSection from "@/components/partners-section";
+import Link from "next/link";
 
 const programs = [
   {
@@ -142,7 +143,7 @@ const programs = [
     startDate: "2024-06-01",
     budget: "$250,000",
   },
-]
+];
 
 const categories = [
   { id: "all", name: { ar: "جميع البرامج", en: "All Programs" } },
@@ -152,51 +153,53 @@ const categories = [
   { id: "support", name: { ar: "دعم نفسي", en: "Psychological Support" } },
   { id: "health", name: { ar: "صحة", en: "Health" } },
   { id: "education", name: { ar: "تعليم", en: "Education" } },
-]
+];
 
 const statusOptions = [
   { id: "all", name: { ar: "جميع الحالات", en: "All Status" } },
   { id: "active", name: { ar: "نشط", en: "Active" } },
   { id: "completed", name: { ar: "مكتمل", en: "Completed" } },
   { id: "planning", name: { ar: "قيد التخطيط", en: "Planning" } },
-]
+];
 
 export default function ProgramsPage() {
-  const [selectedCategory, setSelectedCategory] = useState("all")
-  const [selectedStatus, setSelectedStatus] = useState("all")
-  const { language, t } = useLanguage()
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedStatus, setSelectedStatus] = useState("all");
+  const { language, t } = useLanguage();
 
   const filteredPrograms = programs.filter((program) => {
-    const categoryMatch = selectedCategory === "all" || program.category === selectedCategory
-    const statusMatch = selectedStatus === "all" || program.status === selectedStatus
-    return categoryMatch && statusMatch
-  })
+    const categoryMatch =
+      selectedCategory === "all" || program.category === selectedCategory;
+    const statusMatch =
+      selectedStatus === "all" || program.status === selectedStatus;
+    return categoryMatch && statusMatch;
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
-        return "bg-green-100 text-green-800"
+        return "bg-green-100 text-green-800";
       case "completed":
-        return "bg-blue-100 text-blue-800"
+        return "bg-blue-100 text-blue-800";
       case "planning":
-        return "bg-yellow-100 text-yellow-800"
+        return "bg-yellow-100 text-yellow-800";
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   const getStatusText = (status: string) => {
     switch (status) {
       case "active":
-        return language === "ar" ? "نشط" : "Active"
+        return language === "ar" ? "نشط" : "Active";
       case "completed":
-        return language === "ar" ? "مكتمل" : "Completed"
+        return language === "ar" ? "مكتمل" : "Completed";
       case "planning":
-        return language === "ar" ? "قيد التخطيط" : "Planning"
+        return language === "ar" ? "قيد التخطيط" : "Planning";
       default:
-        return status
+        return status;
     }
-  }
+  };
 
   return (
     <div className="min-h-screen">
@@ -209,7 +212,9 @@ export default function ProgramsPage() {
             transition={{ duration: 0.6 }}
             className="text-center"
           >
-            <h1 className="text-4xl md:text-5xl font-bold mb-6">{t("programs.title")}</h1>
+            <h1 className="text-4xl md:text-5xl font-bold mb-6">
+              {t("programs.title")}
+            </h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               {language === "ar"
                 ? "نقدم مجموعة متنوعة من البرامج والمشاريع التنموية والإنسانية لخدمة المجتمع الفلسطيني"
@@ -225,7 +230,9 @@ export default function ProgramsPage() {
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
             <div className="flex items-center gap-2">
               <Filter className="w-5 h-5 text-muted-foreground" />
-              <span className="font-medium">{language === "ar" ? "فلترة البرامج:" : "Filter Programs:"}</span>
+              <span className="font-medium">
+                {language === "ar" ? "فلترة البرامج:" : "Filter Programs:"}
+              </span>
             </div>
 
             <div className="flex flex-wrap gap-4">
@@ -234,7 +241,9 @@ export default function ProgramsPage() {
                 {categories.map((category) => (
                   <Button
                     key={category.id}
-                    variant={selectedCategory === category.id ? "default" : "outline"}
+                    variant={
+                      selectedCategory === category.id ? "default" : "outline"
+                    }
                     size="sm"
                     onClick={() => setSelectedCategory(category.id)}
                   >
@@ -248,7 +257,9 @@ export default function ProgramsPage() {
                 {statusOptions.map((status) => (
                   <Button
                     key={status.id}
-                    variant={selectedStatus === status.id ? "default" : "outline"}
+                    variant={
+                      selectedStatus === status.id ? "default" : "outline"
+                    }
                     size="sm"
                     onClick={() => setSelectedStatus(status.id)}
                   >
@@ -281,13 +292,19 @@ export default function ProgramsPage() {
                       className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                     />
                     <div className="absolute top-4 left-4 rtl:right-4 rtl:left-auto">
-                      <Badge className={getStatusColor(program.status)}>{getStatusText(program.status)}</Badge>
+                      <Badge className={getStatusColor(program.status)}>
+                        {getStatusText(program.status)}
+                      </Badge>
                     </div>
                   </div>
 
                   <CardHeader>
-                    <CardTitle className="text-lg leading-tight">{program.title[language]}</CardTitle>
-                    <p className="text-muted-foreground text-sm line-clamp-2">{program.description[language]}</p>
+                    <CardTitle className="text-lg leading-tight">
+                      {program.title[language]}
+                    </CardTitle>
+                    <p className="text-muted-foreground text-sm line-clamp-2">
+                      {program.description[language]}
+                    </p>
                   </CardHeader>
 
                   <CardContent>
@@ -295,7 +312,8 @@ export default function ProgramsPage() {
                       <div className="flex items-center text-sm text-muted-foreground">
                         <Users className="w-4 h-4 mr-2 rtl:ml-2 rtl:mr-0" />
                         <span>
-                          {program.beneficiaries.toLocaleString()} {language === "ar" ? "مستفيد" : "beneficiaries"}
+                          {program.beneficiaries.toLocaleString()}{" "}
+                          {language === "ar" ? "مستفيد" : "beneficiaries"}
                         </span>
                       </div>
 
@@ -315,9 +333,15 @@ export default function ProgramsPage() {
                       </div>
                     </div>
 
-                    <Button className="w-full mt-4 bg-transparent" variant="outline" asChild>
+                    <Button
+                      className="w-full mt-4 bg-transparent"
+                      variant="outline"
+                      asChild
+                    >
                       <Link href={`/programs/${program.id}`}>
-                        {language === "ar" ? "تفاصيل المشروع" : "Project Details"}
+                        {language === "ar"
+                          ? "تفاصيل المشروع"
+                          : "Project Details"}
                       </Link>
                     </Button>
                   </CardContent>
@@ -327,14 +351,23 @@ export default function ProgramsPage() {
           </div>
 
           {filteredPrograms.length === 0 && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-12"
+            >
               <p className="text-muted-foreground text-lg">
-                {language === "ar" ? "لا توجد برامج تطابق المعايير المحددة" : "No programs match the selected criteria"}
+                {language === "ar"
+                  ? "لا توجد برامج تطابق المعايير المحددة"
+                  : "No programs match the selected criteria"}
               </p>
             </motion.div>
           )}
         </div>
       </section>
+
+      {/* Partners Section */}
+      <PartnersSection />
     </div>
-  )
+  );
 }

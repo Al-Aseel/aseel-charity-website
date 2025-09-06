@@ -4,14 +4,16 @@ import { Tajawal } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { LanguageProvider } from "@/components/language-provider";
-import Header from "@/components/header";
-import Footer from "@/components/footer";
+import { SettingsProvider } from "@/components/settings-provider";
+import AppContent from "@/components/app-content";
 
 const tajawal = Tajawal({
   subsets: ["arabic"],
   weight: ["400", "700", "900"],
   variable: "--font-tajawal",
   display: "swap",
+  fallback: ["system-ui", "arial", "sans-serif"],
+  preload: true,
 });
 
 export const metadata: Metadata = {
@@ -41,13 +43,11 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <LanguageProvider>
-            <div className="min-h-screen flex flex-col">
-              <Header />
-              <main className="flex-1">{children}</main>
-              <Footer />
-            </div>
-          </LanguageProvider>
+          <SettingsProvider>
+            <LanguageProvider>
+              <AppContent>{children}</AppContent>
+            </LanguageProvider>
+          </SettingsProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Autoplay } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/components/language-provider";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { api, getImageUrl } from "@/lib/api";
+import type { PartnerItem } from "@/lib/types";
 
 // Import Swiper styles
 import "swiper/css";
@@ -16,130 +18,39 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import "swiper/css/autoplay";
 
-interface PartnerDescription {
-  ar: string;
-  en: string;
-}
-
-interface Partner {
-  id: number;
-  name: string;
-  logo: string;
-  link: string;
-  description: PartnerDescription;
-}
-
-const partners: Partner[] = [
-  {
-    id: 1,
-    name: "UNICEF",
-    logo: "/placeholder.svg?height=80&width=120",
-    link: "https://www.who.int/",
-    description: {
-      ar: "منظمة الأمم المتحدة للطفولة",
-      en: "United Nations Children's Fund",
-    },
-  },
-  {
-    id: 2,
-    name: "WHO",
-    logo: "https://www.who.int/ResourcePackages/WHO/assets/dist/images/logos/en/h-logo-blue.svg",
-    link: "https://www.who.int/",
-    description: {
-      ar: "منظمة الصحة العالمية",
-      en: "World Health Organization",
-    },
-  },
-  {
-    id: 3,
-    name: "UNDP",
-    logo: "https://miro.medium.com/v2/resize:fill:176:176/1*1ZF1lEpi9odcxZz2jgmI6g.png",
-    link: "https://www.who.int/",
-    description: {
-      ar: "برنامج الأمم المتحدة الإنمائي",
-      en: "United Nations Development Programme",
-    },
-  },
-  {
-    id: 4,
-    name: "Islamic Relief",
-    logo: "/placeholder.svg?height=80&width=120",
-    link: "https://www.who.int/",
-    description: {
-      ar: "الإغاثة الإسلامية",
-      en: "Islamic Relief Worldwide",
-    },
-  },
-  {
-    id: 5,
-    name: "Oxfam",
-    logo: "/placeholder.svg?height=80&width=120",
-    link: "https://www.who.int/",
-    description: {
-      ar: "أوكسفام",
-      en: "Oxfam International",
-    },
-  },
-  {
-    id: 6,
-    name: "Save the Children",
-    logo: "/placeholder.svg?height=80&width=120",
-    link: "https://www.who.int/",
-    description: {
-      ar: "أنقذوا الأطفال",
-      en: "Save the Children International",
-    },
-  },
-  {
-    id: 7,
-    name: "World Food Programme",
-    logo: "/placeholder.svg?height=80&width=120",
-    link: "https://www.who.int/",
-    description: {
-      ar: "برنامج الأغذية العالمي",
-      en: "World Food Programme",
-    },
-  },
-  {
-    id: 8,
-    name: "UNHCR",
-    logo: "/placeholder.svg?height=80&width=120",
-    link: "https://www.who.int/",
-    description: {
-      ar: "مفوضية الأمم المتحدة لشؤون اللاجئين",
-      en: "UN Refugee Agency",
-    },
-  },
-  {
-    id: 9,
-    name: "Red Cross",
-    logo: "/placeholder.svg?height=80&width=120",
-    link: "https://www.who.int/",
-    description: {
-      ar: "الصليب الأحمر الدولي",
-      en: "International Red Cross",
-    },
-  },
-  {
-    id: 10,
-    name: "Doctors Without Borders",
-    logo: "/placeholder.svg?height=80&width=120",
-    link: "https://www.who.int/",
-    description: {
-      ar: "أطباء بلا حدود",
-      en: "Médecins Sans Frontières",
-    },
-  },
-];
+const PLACEHOLDER_IMG = "/placeholder.svg?height=80&width=120";
 
 interface PartnerCardProps {
-  partner: Partner;
+  partner: PartnerItem;
 }
 
 export default function PartnersSection(): JSX.Element {
   const [isAutoPlaying, setIsAutoPlaying] = useState<boolean>(true);
+  const [partners, setPartners] = useState<PartnerItem[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const swiperRef = useRef<{ swiper: SwiperType } | null>(null);
   const { language, t } = useLanguage();
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadPartners = async (): Promise<void> => {
+      setIsLoading(true);
+      try {
+        const res = await api.getPartners();
+        if (!isMounted) return;
+        setPartners(res?.data?.partners || []);
+      } catch (err) {
+        if (!isMounted) return;
+        setPartners([]);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+    loadPartners();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleAutoplayToggle = (): void => {
     if (swiperRef.current && swiperRef.current.swiper) {
@@ -169,21 +80,25 @@ export default function PartnersSection(): JSX.Element {
     >
       <Link
         target="_blank"
-        href={partner.link}
+        href={partner.website || "#"}
         className="bg-white rounded-lg p-6 shadow-sm w-full h-32 flex items-center justify-center mb-4"
       >
         <motion.img
-          src={partner.logo || "/placeholder.svg"}
-          alt={partner.name}
+          src={getImageUrl(partner.logo?.url || PLACEHOLDER_IMG)}
+          alt={language === "ar" ? partner.name_ar : partner.name_en}
           className="max-w-full max-h-full object-contain filter grayscale"
           whileHover={{ filter: "grayscale(0%)" }}
           transition={{ duration: 0.3 }}
         />
       </Link>
-      <h3 className="font-medium text-center text-sm mb-2">{partner.name}</h3>
-      <p className="text-xs text-muted-foreground text-center leading-relaxed line-clamp-2">
-        {partner.description[language]}
-      </p>
+      <h3 className="font-medium text-center text-sm mb-2">
+        {partner.name_ar || partner.name_en}
+      </h3>
+      {partner.name_en ? (
+        <p className="text-xs text-muted-foreground text-center leading-relaxed line-clamp-2">
+          {partner.name_en || partner.name_ar}
+        </p>
+      ) : null}
     </motion.div>
   );
 
@@ -199,17 +114,21 @@ export default function PartnersSection(): JSX.Element {
     >
       <div className="bg-white rounded-lg p-4 shadow-sm w-full h-20 flex items-center justify-center mb-3">
         <motion.img
-          src={partner.logo || "/placeholder.svg"}
-          alt={partner.name}
+          src={getImageUrl(partner.logo?.url || PLACEHOLDER_IMG)}
+          alt={language === "ar" ? partner.name_ar : partner.name_en}
           className="max-w-full max-h-full object-contain filter grayscale"
           whileHover={{ filter: "grayscale(0%)" }}
           transition={{ duration: 0.3 }}
         />
       </div>
-      <h3 className="font-medium text-center text-xs mb-1">{partner.name}</h3>
-      <p className="text-xs text-muted-foreground text-center line-clamp-2">
-        {partner.description[language]}
-      </p>
+      <h3 className="font-medium text-center text-xs mb-1">
+        {language === "ar" ? partner.name_ar : partner.name_en}
+      </h3>
+      {partner.website ? (
+        <p className="text-xs text-muted-foreground text-center line-clamp-2">
+          {partner.website}
+        </p>
+      ) : null}
     </motion.div>
   );
 
@@ -259,11 +178,17 @@ export default function PartnersSection(): JSX.Element {
             onAutoplayStart={() => setIsAutoPlaying(true)}
             onAutoplayStop={() => setIsAutoPlaying(false)}
           >
-            {partners.map((partner) => (
-              <SwiperSlide key={partner.id}>
-                <PartnerCard partner={partner} />
-              </SwiperSlide>
-            ))}
+            {(isLoading ? Array.from({ length: 5 }) : partners).map(
+              (partner, idx) => (
+                <SwiperSlide key={(partner as PartnerItem)?._id || idx}>
+                  {isLoading ? (
+                    <div className="bg-white rounded-lg p-6 shadow-sm w-full h-32 flex items-center justify-center mb-4 animate-pulse" />
+                  ) : (
+                    <PartnerCard partner={partner as PartnerItem} />
+                  )}
+                </SwiperSlide>
+              )
+            )}
           </Swiper>
 
           {/* Custom Nav */}
@@ -313,19 +238,30 @@ export default function PartnersSection(): JSX.Element {
             dir={language === "ar" ? "rtl" : "ltr"}
             className="mobile-partners-swiper"
           >
-            {Array.from({ length: Math.ceil(partners.length / 2) }).map(
-              (_, slideIndex) => (
-                <SwiperSlide key={slideIndex}>
-                  <div className="grid grid-cols-2 gap-4">
-                    {partners
-                      .slice(slideIndex * 2, (slideIndex + 1) * 2)
-                      .map((partner) => (
-                        <MobilePartnerCard key={partner.id} partner={partner} />
-                      ))}
-                  </div>
-                </SwiperSlide>
-              )
-            )}
+            {Array.from({
+              length: Math.ceil((partners.length || (isLoading ? 4 : 0)) / 2),
+            }).map((_, slideIndex) => (
+              <SwiperSlide key={slideIndex}>
+                <div className="grid grid-cols-2 gap-4">
+                  {(isLoading
+                    ? Array.from({ length: 2 })
+                    : partners.slice(slideIndex * 2, (slideIndex + 1) * 2)
+                  ).map((partner, idx) =>
+                    isLoading ? (
+                      <div
+                        key={idx}
+                        className="bg-white rounded-lg p-4 shadow-sm w-full h-20 animate-pulse"
+                      />
+                    ) : (
+                      <MobilePartnerCard
+                        key={(partner as PartnerItem)._id}
+                        partner={partner as PartnerItem}
+                      />
+                    )
+                  )}
+                </div>
+              </SwiperSlide>
+            ))}
           </Swiper>
 
           {/* Mobile Nav */}
@@ -383,45 +319,6 @@ export default function PartnersSection(): JSX.Element {
               </>
             )}
           </Button>
-        </div>
-
-        {/* Statistics */}
-        <div className="text-center mt-12 pt-8 border-t border-muted">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                number: `${partners.length}+`,
-                text:
-                  language === "ar"
-                    ? "شريك محلي ودولي"
-                    : "Local & International Partners",
-              },
-              {
-                number: "15+",
-                text:
-                  language === "ar"
-                    ? "سنوات من التعاون"
-                    : "Years of Collaboration",
-              },
-              {
-                number: "50+",
-                text: language === "ar" ? "مشروع مشترك" : "Joint Projects",
-              },
-            ].map((stat, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.2 }}
-                viewport={{ once: true }}
-              >
-                <div className="text-3xl font-bold text-primary mb-2">
-                  {stat.number}
-                </div>
-                <p className="text-muted-foreground">{stat.text}</p>
-              </motion.div>
-            ))}
-          </div>
         </div>
       </div>
     </section>
