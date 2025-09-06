@@ -189,7 +189,7 @@ export default function AboutPage() {
       </section>
 
       {/* Organization Structure */}
-      <section className="py-16">
+      {/* <section className="py-16">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -230,7 +230,7 @@ export default function AboutPage() {
             </motion.div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Partners Section */}
       <PartnersSection />

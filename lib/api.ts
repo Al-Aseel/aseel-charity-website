@@ -1,4 +1,4 @@
-import { SliderImagesResponse, PartnersResponse, ActivitiesResponse, SettingsResponse } from './types';
+import { SliderImagesResponse, PartnersResponse, ActivitiesResponse, SingleActivityResponse, SettingsResponse } from './types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api';
 const HOST_URL = process.env.NEXT_PUBLIC_HOST_URL || 'http://localhost:3001';
@@ -71,6 +71,18 @@ export const api = {
   // Get activities/news
   getActivities: (lastXElement: number = 3): Promise<ActivitiesResponse> => {
     return fetchApi<ActivitiesResponse>(`/activity?lastXElement=${lastXElement}`);
+  },
+  // Get activities with pagination and search
+  getActivitiesPaginated: (page: number = 1, limit: number = 9, search?: string): Promise<ActivitiesResponse> => {
+    let endpoint = `/activity?page=${page}&limit=${limit}`;
+    if (search && search.trim()) {
+      endpoint += `&search=${encodeURIComponent(search.trim())}`;
+    }
+    return fetchApi<ActivitiesResponse>(endpoint);
+  },
+  // Get specific activity by ID
+  getActivityById: (id: string): Promise<SingleActivityResponse> => {
+    return fetchApi<SingleActivityResponse>(`/activity/${id}`);
   },
   // Get website settings
   getSettings: (): Promise<SettingsResponse> => {

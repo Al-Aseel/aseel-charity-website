@@ -288,7 +288,7 @@ export default function NewsSection() {
           className="text-center mt-12"
         >
           <Button size="lg" variant="outline" asChild>
-            <Link href="/archive">
+            <Link href="/news">
               {t("common.view-all")}
               <ArrowRight className="w-4 h-4 mr-2 rtl:ml-2 rtl:mr-0" />
             </Link>

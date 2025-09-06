@@ -119,6 +119,9 @@ export interface ActivitiesData {
 
 export type ActivitiesResponse = ApiResponse<ActivitiesData>;
 
+// Single Activity Response
+export type SingleActivityResponse = ApiResponse<Activity>;
+
 // Settings Types
 export interface WebsiteLogo {
   _id: string;
