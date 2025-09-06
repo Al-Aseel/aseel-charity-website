@@ -1,4 +1,4 @@
-import { SliderImagesResponse, PartnersResponse, ActivitiesResponse, SingleActivityResponse, SettingsResponse, ProgramsResponse, SingleProgramResponse } from './types';
+import { SliderImagesResponse, PartnersResponse, ActivitiesResponse, SingleActivityResponse, SettingsResponse, ProgramsResponse, SingleProgramResponse, ReportsResponse } from './types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api';
 const HOST_URL = process.env.NEXT_PUBLIC_HOST_URL || 'http://localhost:3001';
@@ -99,6 +99,27 @@ export const api = {
   // Get specific program by ID
   getProgramById: (id: string): Promise<SingleProgramResponse> => {
     return fetchApi<SingleProgramResponse>(`/program/${id}`);
+  },
+  // Get reports with pagination and search
+  getReports: (page: number = 1, limit: number = 10, search?: string, type?: string): Promise<ReportsResponse> => {
+    let endpoint = `/report?page=${page}&limit=${limit}`;
+    
+    // Add search parameter if provided
+    if (search && search.trim()) {
+      const encodedSearch = encodeURIComponent(search.trim());
+      endpoint += `&search=${encodedSearch}`;
+      console.log('Search parameter added:', { original: search.trim(), encoded: encodedSearch });
+    }
+    
+    // Add type parameter if provided and not 'all'
+    if (type && type !== 'all') {
+      const encodedType = encodeURIComponent(type);
+      endpoint += `&type=${encodedType}`;
+      console.log('Type parameter added:', { original: type, encoded: encodedType });
+    }
+    
+    console.log('Final endpoint:', endpoint);
+    return fetchApi<ReportsResponse>(endpoint);
   },
 };
 

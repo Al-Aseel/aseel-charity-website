@@ -197,3 +197,38 @@ export interface ProgramsData {
 
 export type ProgramsResponse = ApiResponse<ProgramsData>;
 export type SingleProgramResponse = ApiResponse<Program>;
+
+// Reports Types
+export interface ReportFile {
+  _id: string;
+  url: string;
+  fileName: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+}
+
+export interface Report {
+  _id: string;
+  title: string;
+  type: string;
+  author: string;
+  createdAt: string;
+  status: string;
+  file: ReportFile | null;
+  isDeleted: boolean;
+  deletedAt: string | null;
+  __v: number;
+}
+
+export interface ReportsData {
+  reports: Report[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export type ReportsResponse = ApiResponse<ReportsData>;
