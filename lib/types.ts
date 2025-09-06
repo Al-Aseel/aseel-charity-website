@@ -150,3 +150,50 @@ export interface WebsiteSettings {
 }
 
 export type SettingsResponse = ApiResponse<WebsiteSettings>;
+
+// Programs Types
+export interface ProgramImage {
+  _id: string;
+  url: string;
+  fileName: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+}
+
+export interface Program {
+  _id: string;
+  name: string;
+  coverImage: ProgramImage;
+  description: string;
+  gallery: ProgramImage[];
+  category: string;
+  status: string;
+  location: string;
+  budget: number;
+  startDate: string;
+  endDate: string;
+  manager: string;
+  numberOfBeneficiary: number;
+  content: string;
+  goals: string[];
+  activities: string[];
+  isDeleted: boolean;
+  deletedAt: string | null;
+  created_By: string;
+  createdAt: string;
+  __v: number;
+}
+
+export interface ProgramsData {
+  programs: Program[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export type ProgramsResponse = ApiResponse<ProgramsData>;
+export type SingleProgramResponse = ApiResponse<Program>;

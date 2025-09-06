@@ -1,149 +1,68 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Filter, Calendar, MapPin, Users, Target } from "lucide-react";
+import {
+  Filter,
+  Calendar,
+  MapPin,
+  Users,
+  Target,
+  Loader2,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/components/language-provider";
 import PartnersSection from "@/components/partners-section";
 import Link from "next/link";
+import { api, getImageUrl } from "@/lib/api";
+import { Program } from "@/lib/types";
 
-const programs = [
-  {
-    id: 1,
-    title: {
-      ar: "برنامج المساعدات الغذائية الطارئة",
-      en: "Emergency Food Assistance Program",
-    },
-    description: {
-      ar: "توفير المساعدات الغذائية العاجلة للأسر الأكثر احتياجاً في قطاع غزة",
-      en: "Providing urgent food assistance to the most needy families in Gaza Strip",
-    },
-    status: "active",
-    category: "relief",
-    beneficiaries: 2500,
-    duration: "12 شهر",
-    location: {
-      ar: "قطاع غزة",
-      en: "Gaza Strip",
-    },
-    image: "/placeholder.svg?height=300&width=400",
-    startDate: "2024-01-01",
-    budget: "$150,000",
-  },
-  {
-    id: 2,
-    title: {
-      ar: "مشروع التدريب المهني للشباب",
-      en: "Youth Vocational Training Project",
-    },
-    description: {
-      ar: "برنامج تدريبي شامل لتأهيل الشباب في مختلف المهن والحرف",
-      en: "Comprehensive training program to qualify youth in various professions and crafts",
-    },
-    status: "active",
-    category: "training",
-    beneficiaries: 300,
-    duration: "18 شهر",
-    location: {
-      ar: "غزة ورفح",
-      en: "Gaza and Rafah",
-    },
-    image: "/placeholder.svg?height=300&width=400",
-    startDate: "2023-09-01",
-    budget: "$200,000",
-  },
-  {
-    id: 3,
-    title: {
-      ar: "برنامج تمكين النساء اقتصادياً",
-      en: "Women Economic Empowerment Program",
-    },
-    description: {
-      ar: "دعم النساء في إقامة مشاريع صغيرة مدرة للدخل",
-      en: "Supporting women in establishing small income-generating projects",
-    },
-    status: "completed",
-    category: "empowerment",
-    beneficiaries: 150,
-    duration: "24 شهر",
-    location: {
-      ar: "شمال غزة",
-      en: "North Gaza",
-    },
-    image: "/placeholder.svg?height=300&width=400",
-    startDate: "2022-06-01",
-    budget: "$120,000",
-  },
-  {
-    id: 4,
-    title: {
-      ar: "مشروع الدعم النفسي للأطفال",
-      en: "Psychological Support Project for Children",
-    },
-    description: {
-      ar: "تقديم الدعم النفسي والاجتماعي للأطفال المتضررين من الأوضاع الصعبة",
-      en: "Providing psychological and social support to children affected by difficult conditions",
-    },
-    status: "active",
-    category: "support",
-    beneficiaries: 500,
-    duration: "15 شهر",
-    location: {
-      ar: "جميع محافظات غزة",
-      en: "All Gaza Governorates",
-    },
-    image: "/placeholder.svg?height=300&width=400",
-    startDate: "2023-11-01",
-    budget: "$180,000",
-  },
-  {
-    id: 5,
-    title: {
-      ar: "برنامج الرعاية الصحية الأولية",
-      en: "Primary Healthcare Program",
-    },
-    description: {
-      ar: "توفير خدمات الرعاية الصحية الأساسية للمجتمعات المحلية",
-      en: "Providing basic healthcare services to local communities",
-    },
-    status: "completed",
-    category: "health",
-    beneficiaries: 1200,
-    duration: "36 شهر",
-    location: {
-      ar: "خان يونس والوسطى",
-      en: "Khan Younis and Middle Area",
-    },
-    image: "/placeholder.svg?height=300&width=400",
-    startDate: "2021-03-01",
-    budget: "$300,000",
-  },
-  {
-    id: 6,
-    title: {
-      ar: "مشروع التعليم البديل",
-      en: "Alternative Education Project",
-    },
-    description: {
-      ar: "برنامج تعليمي بديل للأطفال المتسربين من المدارس",
-      en: "Alternative educational program for children who dropped out of school",
-    },
-    status: "planning",
-    category: "education",
-    beneficiaries: 400,
-    duration: "20 شهر",
-    location: {
-      ar: "رفح وخان يونس",
-      en: "Rafah and Khan Younis",
-    },
-    image: "/placeholder.svg?height=300&width=400",
-    startDate: "2024-06-01",
-    budget: "$250,000",
-  },
-];
+// Helper function to format budget
+const formatBudget = (budget: number): string => {
+  return `$${budget.toLocaleString()}`;
+};
+
+// Helper function to calculate duration
+const calculateDuration = (startDate: string, endDate: string): string => {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  // Calculate the difference in years and months
+  let years = end.getFullYear() - start.getFullYear();
+  let months = end.getMonth() - start.getMonth();
+
+  // Adjust for negative months
+  if (months < 0) {
+    years--;
+    months += 12;
+  }
+
+  // Adjust for day difference
+  if (end.getDate() < start.getDate()) {
+    months--;
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+  }
+
+  // Format the result
+  if (years > 0 && months > 0) {
+    return `${years} ${years === 1 ? "سنة" : "سنة"} و ${months} ${months === 1 ? "شهر" : "شهر"}`;
+  } else if (years > 0) {
+    return `${years} ${years === 1 ? "سنة" : "سنة"}`;
+  } else if (months > 0) {
+    return `${months} ${months === 1 ? "شهر" : "شهر"}`;
+  } else {
+    return "أقل من شهر";
+  }
+};
 
 const categories = [
   { id: "all", name: { ar: "جميع البرامج", en: "All Programs" } },
@@ -165,15 +84,51 @@ const statusOptions = [
 export default function ProgramsPage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
+  const [programs, setPrograms] = useState<Program[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalPrograms, setTotalPrograms] = useState(0);
+  const [limit] = useState(9); // Programs per page
   const { language, t } = useLanguage();
 
-  const filteredPrograms = programs.filter((program) => {
-    const categoryMatch =
-      selectedCategory === "all" || program.category === selectedCategory;
-    const statusMatch =
-      selectedStatus === "all" || program.status === selectedStatus;
-    return categoryMatch && statusMatch;
-  });
+  const fetchPrograms = async (page: number = 1, search: string = "") => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await api.getPrograms(page, limit, search);
+      setPrograms(response.data.programs);
+      setTotalPages(response.data.pagination.totalPages);
+      setTotalPrograms(response.data.pagination.total);
+      setCurrentPage(page);
+    } catch (err) {
+      console.error("Error fetching programs:", err);
+      setError("فشل في تحميل البرامج");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPrograms(1, searchTerm);
+  }, []);
+
+  // Handle search
+  const handleSearch = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+    fetchPrograms(1, value);
+  };
+
+  // Handle pagination
+  const handlePageChange = (page: number) => {
+    fetchPrograms(page, searchTerm);
+  };
+
+  // Note: Filtering is now handled by API, so we use programs directly
+  const filteredPrograms = programs;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -224,9 +179,27 @@ export default function ProgramsPage() {
         </div>
       </section>
 
-      {/* Filters */}
+      {/* Search and Filters */}
       <section className="py-8 bg-background border-b">
         <div className="container mx-auto px-4">
+          {/* Search Bar */}
+          <div className="mb-6">
+            <div className="relative max-w-md mx-auto">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Input
+                type="text"
+                placeholder={
+                  language === "ar"
+                    ? "البحث في البرامج..."
+                    : "Search programs..."
+                }
+                value={searchTerm}
+                onChange={(e) => handleSearch(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
+
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
             <div className="flex items-center gap-2">
               <Filter className="w-5 h-5 text-muted-foreground" />
@@ -275,82 +248,106 @@ export default function ProgramsPage() {
       {/* Programs Grid */}
       <section className="py-16">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredPrograms.map((program, index) => (
-              <motion.div
-                key={program.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1, duration: 0.6 }}
-                viewport={{ once: true }}
-              >
-                <Card className="h-full hover:shadow-lg transition-shadow">
-                  <div className="aspect-video relative overflow-hidden rounded-t-lg">
-                    <img
-                      src={program.image || "/placeholder.svg"}
-                      alt={program.title[language]}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute top-4 left-4 rtl:right-4 rtl:left-auto">
-                      <Badge className={getStatusColor(program.status)}>
-                        {getStatusText(program.status)}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <CardHeader>
-                    <CardTitle className="text-lg leading-tight">
-                      {program.title[language]}
-                    </CardTitle>
-                    <p className="text-muted-foreground text-sm line-clamp-2">
-                      {program.description[language]}
-                    </p>
-                  </CardHeader>
-
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <Users className="w-4 h-4 mr-2 rtl:ml-2 rtl:mr-0" />
-                        <span>
-                          {program.beneficiaries.toLocaleString()}{" "}
-                          {language === "ar" ? "مستفيد" : "beneficiaries"}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <Calendar className="w-4 h-4 mr-2 rtl:ml-2 rtl:mr-0" />
-                        <span>{program.duration}</span>
-                      </div>
-
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <MapPin className="w-4 h-4 mr-2 rtl:ml-2 rtl:mr-0" />
-                        <span>{program.location[language]}</span>
-                      </div>
-
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <Target className="w-4 h-4 mr-2 rtl:ml-2 rtl:mr-0" />
-                        <span>{program.budget}</span>
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin" />
+              <span className="ml-2 text-lg">
+                {language === "ar" ? "جاري التحميل..." : "Loading..."}
+              </span>
+            </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <p className="text-red-500 text-lg">{error}</p>
+              <Button onClick={() => window.location.reload()} className="mt-4">
+                {language === "ar" ? "إعادة المحاولة" : "Retry"}
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredPrograms.map((program, index) => (
+                <motion.div
+                  key={program._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1, duration: 0.6 }}
+                  viewport={{ once: true }}
+                >
+                  <Card className="h-full hover:shadow-lg transition-shadow">
+                    <div className="aspect-video relative overflow-hidden rounded-t-lg">
+                      <img
+                        src={
+                          getImageUrl(program.coverImage?.url) ||
+                          "/placeholder.svg"
+                        }
+                        alt={program.name}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                      />
+                      <div className="absolute top-4 left-4 rtl:right-4 rtl:left-auto">
+                        <Badge className={getStatusColor(program.status)}>
+                          {getStatusText(program.status)}
+                        </Badge>
                       </div>
                     </div>
 
-                    <Button
-                      className="w-full mt-4 bg-transparent"
-                      variant="outline"
-                      asChild
-                    >
-                      <Link href={`/programs/${program.id}`}>
-                        {language === "ar"
-                          ? "تفاصيل المشروع"
-                          : "Project Details"}
-                      </Link>
-                    </Button>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
+                    <CardHeader>
+                      <CardTitle className="text-lg leading-tight">
+                        {program.name}
+                      </CardTitle>
+                      <p className="text-muted-foreground text-sm line-clamp-2">
+                        {program.description}
+                      </p>
+                    </CardHeader>
 
-          {filteredPrograms.length === 0 && (
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="flex items-center text-sm text-muted-foreground">
+                          <Users className="w-4 h-4 mr-2 rtl:ml-2 rtl:mr-0" />
+                          <span>
+                            {program.numberOfBeneficiary.toLocaleString()}{" "}
+                            {language === "ar" ? "مستفيد" : "beneficiaries"}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center text-sm text-muted-foreground">
+                          <Calendar className="w-4 h-4 mr-2 rtl:ml-2 rtl:mr-0" />
+                          <span>
+                            {calculateDuration(
+                              program.startDate,
+                              program.endDate
+                            )}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center text-sm text-muted-foreground">
+                          <MapPin className="w-4 h-4 mr-2 rtl:ml-2 rtl:mr-0" />
+                          <span>{program.location}</span>
+                        </div>
+
+                        <div className="flex items-center text-sm text-muted-foreground">
+                          <Target className="w-4 h-4 mr-2 rtl:ml-2 rtl:mr-0" />
+                          <span>{formatBudget(program.budget)}</span>
+                        </div>
+                      </div>
+
+                      <Button
+                        className="w-full mt-4 bg-transparent"
+                        variant="outline"
+                        asChild
+                      >
+                        <Link href={`/programs/${program._id}`}>
+                          {language === "ar"
+                            ? "تفاصيل المشروع"
+                            : "Project Details"}
+                        </Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          )}
+
+          {!loading && !error && filteredPrograms.length === 0 && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -362,6 +359,74 @@ export default function ProgramsPage() {
                   : "No programs match the selected criteria"}
               </p>
             </motion.div>
+          )}
+
+          {/* Results Info and Pagination */}
+          {!loading && !error && filteredPrograms.length > 0 && (
+            <div className="mt-12">
+              {/* Results Info */}
+              <div className="text-center mb-6">
+                <p className="text-muted-foreground">
+                  {language === "ar"
+                    ? `عرض ${(currentPage - 1) * limit + 1}-${Math.min(currentPage * limit, totalPrograms)} من ${totalPrograms} برنامج`
+                    : `Showing ${(currentPage - 1) * limit + 1}-${Math.min(currentPage * limit, totalPrograms)} of ${totalPrograms} programs`}
+                </p>
+              </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    {language === "ar" ? "السابق" : "Previous"}
+                  </Button>
+
+                  <div className="flex gap-1">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+
+                      return (
+                        <Button
+                          key={pageNum}
+                          variant={
+                            currentPage === pageNum ? "default" : "outline"
+                          }
+                          size="sm"
+                          onClick={() => handlePageChange(pageNum)}
+                          className="w-10 h-10"
+                        >
+                          {pageNum}
+                        </Button>
+                      );
+                    })}
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  >
+                    {language === "ar" ? "التالي" : "Next"}
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </section>

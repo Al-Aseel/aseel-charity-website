@@ -1,4 +1,4 @@
-import { SliderImagesResponse, PartnersResponse, ActivitiesResponse, SingleActivityResponse, SettingsResponse } from './types';
+import { SliderImagesResponse, PartnersResponse, ActivitiesResponse, SingleActivityResponse, SettingsResponse, ProgramsResponse, SingleProgramResponse } from './types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api';
 const HOST_URL = process.env.NEXT_PUBLIC_HOST_URL || 'http://localhost:3001';
@@ -87,6 +87,18 @@ export const api = {
   // Get website settings
   getSettings: (): Promise<SettingsResponse> => {
     return fetchApi<SettingsResponse>('/setting');
+  },
+  // Get programs with pagination and search
+  getPrograms: (page: number = 1, limit: number = 10, search?: string): Promise<ProgramsResponse> => {
+    let endpoint = `/program?page=${page}&limit=${limit}`;
+    if (search && search.trim()) {
+      endpoint += `&search=${encodeURIComponent(search.trim())}`;
+    }
+    return fetchApi<ProgramsResponse>(endpoint);
+  },
+  // Get specific program by ID
+  getProgramById: (id: string): Promise<SingleProgramResponse> => {
+    return fetchApi<SingleProgramResponse>(`/program/${id}`);
   },
 };
 
