@@ -232,3 +232,32 @@ export interface ReportsData {
 }
 
 export type ReportsResponse = ApiResponse<ReportsData>;
+
+// Archive (combined programs + activities)
+export interface ArchivePagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  counts?: {
+    program?: number;
+    activity?: number;
+  };
+}
+
+export interface ArchiveFilters {
+  search: string | null;
+  types: string[];
+}
+
+export interface ArchiveData {
+  data: (Program | Activity)[];
+  categories?: Array<{
+    name: string;
+    ids: Array<{ id: string; type: string }>;
+  }>;
+  pagination: ArchivePagination;
+  filters: ArchiveFilters;
+}
+
+export type ArchiveResponse = ApiResponse<ArchiveData>;

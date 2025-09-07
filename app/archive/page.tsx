@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Filter, Calendar, Search, Grid, List } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,172 +10,111 @@ import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/components/language-provider";
 import PartnersSection from "@/components/partners-section";
 import Link from "next/link";
+import { api, getImageUrl } from "@/lib/api";
+import type { Activity, Program } from "@/lib/types";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationPrevious,
+  PaginationNext,
+  PaginationLink,
+} from "@/components/ui/pagination";
 
-const archiveItems = [
-  {
-    id: 1,
-    title: {
-      ar: "حملة الشتاء الدافئ 2022",
-      en: "Warm Winter Campaign 2022",
-    },
-    description: {
-      ar: "حملة توزيع الملابس الشتوية والبطانيات على الأسر المحتاجة",
-      en: "Distribution campaign of winter clothes and blankets to needy families",
-    },
-    type: "campaign",
-    category: "relief",
-    date: "2022-12-15",
-    year: "2022",
-    image: "/placeholder.svg?height=300&width=400",
-  },
-  {
-    id: 2,
-    title: {
-      ar: "ورشة تدريبية: إدارة المشاريع الصغيرة",
-      en: "Training Workshop: Small Business Management",
-    },
-    description: {
-      ar: "ورشة تدريبية متخصصة في إدارة وتطوير المشاريع الصغيرة",
-      en: "Specialized training workshop on small business management and development",
-    },
-    type: "workshop",
-    category: "training",
-    date: "2022-10-20",
-    year: "2022",
-    image: "/placeholder.svg?height=300&width=400",
-  },
-  {
-    id: 3,
-    title: {
-      ar: "مؤتمر التنمية المجتمعية 2023",
-      en: "Community Development Conference 2023",
-    },
-    description: {
-      ar: "مؤتمر سنوي يناقش قضايا التنمية المجتمعية في فلسطين",
-      en: "Annual conference discussing community development issues in Palestine",
-    },
-    type: "conference",
-    category: "development",
-    date: "2023-05-10",
-    year: "2023",
-    image: "/placeholder.svg?height=300&width=400",
-  },
-  {
-    id: 4,
-    title: {
-      ar: "برنامج الإفطار المدرسي",
-      en: "School Breakfast Program",
-    },
-    description: {
-      ar: "برنامج توفير وجبات الإفطار للطلاب في المدارس الحكومية",
-      en: "Program providing breakfast meals for students in public schools",
-    },
-    type: "program",
-    category: "education",
-    date: "2023-09-01",
-    year: "2023",
-    image: "/placeholder.svg?height=300&width=400",
-  },
-  {
-    id: 5,
-    title: {
-      ar: "يوم الصحة المجتمعية",
-      en: "Community Health Day",
-    },
-    description: {
-      ar: "فعالية صحية مجتمعية تتضمن فحوصات طبية مجانية",
-      en: "Community health event including free medical checkups",
-    },
-    type: "event",
-    category: "health",
-    date: "2023-03-15",
-    year: "2023",
-    image: "/placeholder.svg?height=300&width=400",
-  },
-  {
-    id: 6,
-    title: {
-      ar: "معرض المنتجات المحلية",
-      en: "Local Products Exhibition",
-    },
-    description: {
-      ar: "معرض لعرض وتسويق المنتجات المحلية للمشاريع الصغيرة",
-      en: "Exhibition to display and market local products from small businesses",
-    },
-    type: "exhibition",
-    category: "empowerment",
-    date: "2022-08-25",
-    year: "2022",
-    image: "/placeholder.svg?height=300&width=400",
-  },
-];
+type ArchiveItem = Activity | (Program & { type?: string });
 
 const contentTypes = [
   { id: "all", name: { ar: "جميع الأنواع", en: "All Types" } },
-  { id: "campaign", name: { ar: "حملات", en: "Campaigns" } },
-  { id: "workshop", name: { ar: "ورش عمل", en: "Workshops" } },
-  { id: "conference", name: { ar: "مؤتمرات", en: "Conferences" } },
   { id: "program", name: { ar: "برامج", en: "Programs" } },
-  { id: "event", name: { ar: "فعاليات", en: "Events" } },
-  { id: "exhibition", name: { ar: "معارض", en: "Exhibitions" } },
+  { id: "activity", name: { ar: "أنشطة/أخبار", en: "Activities/News" } },
 ];
 
-const categories = [
-  { id: "all", name: { ar: "جميع الفئات", en: "All Categories" } },
-  { id: "relief", name: { ar: "إغاثة", en: "Relief" } },
-  { id: "training", name: { ar: "تدريب", en: "Training" } },
-  { id: "development", name: { ar: "تنمية", en: "Development" } },
-  { id: "education", name: { ar: "تعليم", en: "Education" } },
-  { id: "health", name: { ar: "صحة", en: "Health" } },
-  { id: "empowerment", name: { ar: "تمكين", en: "Empowerment" } },
-];
-
-const years = [
-  { id: "all", name: { ar: "جميع السنوات", en: "All Years" } },
-  { id: "2023", name: { ar: "2023", en: "2023" } },
-  { id: "2022", name: { ar: "2022", en: "2022" } },
-  { id: "2021", name: { ar: "2021", en: "2021" } },
-];
+// Future: you can add categories/years filters when backend supports them
 
 export default function ArchivePage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedType, setSelectedType] = useState("all");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedYear, setSelectedYear] = useState("all");
+  const [page, setPage] = useState(1);
+  const [limit] = useState(9);
+  const [items, setItems] = useState<ArchiveItem[]>([]);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [categories, setCategories] = useState<
+    { name: string; ids: { id: string; type: string }[] }[]
+  >([]);
+  const [selectedCategory, setSelectedCategory] = useState<string | "all">(
+    "all"
+  );
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const { language, t } = useLanguage();
 
-  const filteredItems = archiveItems.filter((item) => {
-    const searchMatch =
-      !searchQuery ||
-      item.title.ar.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.title.en.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description.ar.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description.en.toLowerCase().includes(searchQuery.toLowerCase());
+  // debounce search
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedSearch(searchQuery), 400);
+    return () => clearTimeout(id);
+  }, [searchQuery]);
 
-    const typeMatch = selectedType === "all" || item.type === selectedType;
-    const categoryMatch =
-      selectedCategory === "all" || item.category === selectedCategory;
-    const yearMatch = selectedYear === "all" || item.year === selectedYear;
+  // fetch archive
+  useEffect(() => {
+    let isCancelled = false;
+    async function load() {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const types =
+          selectedType === "all" ? ["program", "activity"] : [selectedType];
+        const res = await api.getArchive(
+          page,
+          limit,
+          types,
+          debouncedSearch,
+          selectedCategory !== "all" ? selectedCategory : undefined
+        );
+        if (isCancelled) return;
+        const data = res.data?.data || [];
+        setItems(data as ArchiveItem[]);
+        const totalCount = res.data?.pagination?.total ?? data.length;
+        setTotal(totalCount);
+        const serverTotalPages = res.data?.pagination?.totalPages;
+        setTotalPages(
+          serverTotalPages ?? Math.max(1, Math.ceil(totalCount / limit))
+        );
+        setCategories(res.data?.categories || []);
+      } catch (e) {
+        if (isCancelled) return;
+        setError(e instanceof Error ? e.message : "Unknown error");
+      } finally {
+        if (!isCancelled) setIsLoading(false);
+      }
+    }
+    load();
+    return () => {
+      isCancelled = true;
+    };
+  }, [page, limit, selectedType, debouncedSearch, selectedCategory]);
 
-    return searchMatch && typeMatch && categoryMatch && yearMatch;
-  });
+  // Reset to first page when filters or search change
+  useEffect(() => {
+    setPage(1);
+  }, [selectedType, debouncedSearch, selectedCategory]);
 
   const getTypeColor = (type: string) => {
     const colors = {
-      campaign: "bg-red-100 text-red-800",
-      workshop: "bg-blue-100 text-blue-800",
-      conference: "bg-purple-100 text-purple-800",
       program: "bg-green-100 text-green-800",
-      event: "bg-yellow-100 text-yellow-800",
-      exhibition: "bg-pink-100 text-pink-800",
+      activity: "bg-blue-100 text-blue-800",
     };
     return colors[type as keyof typeof colors] || "bg-gray-100 text-gray-800";
   };
 
   const getTypeName = (type: string) => {
-    const typeObj = contentTypes.find((t) => t.id === type);
-    return typeObj ? typeObj.name[language] : type;
+    const map: Record<string, { ar: string; en: string }> = {
+      program: { ar: "برنامج", en: "Program" },
+      activity: { ar: "نشاط/خبر", en: "Activity/News" },
+    };
+    return map[type]?.[language] || type;
   };
 
   return (
@@ -241,42 +180,38 @@ export default function ArchivePage() {
               </div>
             </div>
 
-            {/* Category Filter */}
+            {/* Categories */}
             <div className="flex-1">
               <h3 className="font-medium mb-3">
-                {language === "ar" ? "الفئة:" : "Category:"}
+                {language === "ar" ? "الفئات:" : "Categories:"}
               </h3>
               <div className="flex flex-wrap gap-2">
-                {categories.map((category) => (
-                  <Button
-                    key={category.id}
-                    variant={
-                      selectedCategory === category.id ? "default" : "outline"
-                    }
-                    size="sm"
-                    onClick={() => setSelectedCategory(category.id)}
-                  >
-                    {category.name[language]}
-                  </Button>
-                ))}
-              </div>
-            </div>
-
-            {/* Year Filter */}
-            <div className="flex-1">
-              <h3 className="font-medium mb-3">
-                {language === "ar" ? "السنة:" : "Year:"}
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {years.map((year) => (
-                  <Button
-                    key={year.id}
-                    variant={selectedYear === year.id ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedYear(year.id)}
-                  >
-                    {year.name[language]}
-                  </Button>
+                <Button
+                  variant={selectedCategory === "all" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedCategory("all")}
+                >
+                  {language === "ar" ? "الكل" : "All"}
+                </Button>
+                {categories.map((cat) => (
+                  <div key={cat.name} className="flex items-center gap-2">
+                    {cat.ids?.map((entry) => (
+                      <Button
+                        key={`${cat.name}-${entry.id}-${entry.type}`}
+                        variant={
+                          selectedCategory === entry.id ? "default" : "outline"
+                        }
+                        size="sm"
+                        onClick={() => {
+                          setSelectedCategory(entry.id || "all");
+                          setSelectedType(entry.type || "all");
+                        }}
+                        title={entry.type}
+                      >
+                        {`${cat.name} - ${entry.type === "program" ? (language === "ar" ? "برامج" : "Programs") : language === "ar" ? "أنشطة" : "Activities"}`}
+                      </Button>
+                    ))}
+                  </div>
                 ))}
               </div>
             </div>
@@ -286,8 +221,8 @@ export default function ArchivePage() {
           <div className="flex justify-between items-center">
             <p className="text-muted-foreground">
               {language === "ar"
-                ? `تم العثور على ${filteredItems.length} عنصر`
-                : `Found ${filteredItems.length} items`}
+                ? `تم العثور على ${total} عنصر`
+                : `Found ${total} items`}
             </p>
             <div className="flex gap-2">
               <Button
@@ -312,7 +247,23 @@ export default function ArchivePage() {
       {/* Archive Content */}
       <section className="py-16">
         <div className="container mx-auto px-4">
-          {filteredItems.length > 0 ? (
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Card key={i} className="h-full">
+                  <div className="aspect-video bg-muted/40 animate-pulse" />
+                  <CardHeader>
+                    <div className="h-5 w-2/3 bg-muted/40 animate-pulse rounded mb-2" />
+                    <div className="h-4 w-1/3 bg-muted/40 animate-pulse rounded" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-4 w-full bg-muted/40 animate-pulse rounded mb-2" />
+                    <div className="h-4 w-5/6 bg-muted/40 animate-pulse rounded" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : items.length > 0 ? (
             <div
               className={
                 viewMode === "grid"
@@ -320,9 +271,9 @@ export default function ArchivePage() {
                   : "space-y-6"
               }
             >
-              {filteredItems.map((item, index) => (
+              {items.map((item, index) => (
                 <motion.div
-                  key={item.id}
+                  key={(item as any)._id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1, duration: 0.6 }}
@@ -331,37 +282,42 @@ export default function ArchivePage() {
                     <Card className="h-full hover:shadow-lg transition-shadow">
                       <div className="aspect-video relative overflow-hidden rounded-t-lg">
                         <img
-                          src={item.image || "/placeholder.svg"}
-                          alt={item.title[language]}
+                          src={
+                            getImageUrl((item as any).coverImage?.url) ||
+                            "/placeholder.svg"
+                          }
+                          alt={(item as any).name}
                           className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                         />
                         <div className="absolute top-4 left-4 rtl:right-4 rtl:left-auto">
-                          <Badge className={getTypeColor(item.type)}>
-                            {getTypeName(item.type)}
+                          <Badge className={getTypeColor((item as any).type)}>
+                            {getTypeName((item as any).type)}
                           </Badge>
                         </div>
                       </div>
                       <CardHeader>
                         <CardTitle className="text-lg leading-tight">
-                          {item.title[language]}
+                          {(item as any).name}
                         </CardTitle>
                         <div className="flex items-center text-sm text-muted-foreground">
                           <Calendar className="w-4 h-4 mr-1 rtl:ml-1 rtl:mr-0" />
-                          {new Date(item.date).toLocaleDateString(
+                          {new Date((item as any).createdAt).toLocaleDateString(
                             language === "ar" ? "ar-EG" : "en-US"
                           )}
                         </div>
                       </CardHeader>
                       <CardContent>
                         <p className="text-muted-foreground text-sm line-clamp-3">
-                          {item.description[language]}
+                          {(item as any).description}
                         </p>
                         <Button
                           variant="ghost"
                           className="p-0 h-auto font-medium text-primary hover:text-primary/80 mt-3"
                           asChild
                         >
-                          <Link href={`/archive/${item.id}`}>
+                          <Link
+                            href={`/${(item as any).type === "program" ? "programs" : "news"}/${(item as any)._id}`}
+                          >
                             {t("common.read-more")}
                           </Link>
                         </Button>
@@ -373,28 +329,37 @@ export default function ArchivePage() {
                         <div className="flex gap-4">
                           <div className="w-24 h-24 flex-shrink-0">
                             <img
-                              src={item.image || "/placeholder.svg"}
-                              alt={item.title[language]}
+                              src={
+                                getImageUrl((item as any).coverImage?.url) ||
+                                "/placeholder.svg"
+                              }
+                              alt={(item as any).name}
                               className="w-full h-full object-cover rounded"
                             />
                           </div>
                           <div className="flex-1">
                             <div className="flex items-start justify-between gap-4 mb-2">
-                              <Link href={`/archive/${item.id}`}>
+                              <Link
+                                href={`/${(item as any).type === "program" ? "programs" : "news"}/${(item as any)._id}`}
+                              >
                                 <h3 className="font-semibold text-lg hover:text-primary transition-colors cursor-pointer">
-                                  {item.title[language]}
+                                  {(item as any).name}
                                 </h3>
                               </Link>
-                              <Badge className={getTypeColor(item.type)}>
-                                {getTypeName(item.type)}
+                              <Badge
+                                className={getTypeColor((item as any).type)}
+                              >
+                                {getTypeName((item as any).type)}
                               </Badge>
                             </div>
                             <p className="text-muted-foreground text-sm mb-2 line-clamp-2">
-                              {item.description[language]}
+                              {(item as any).description}
                             </p>
                             <div className="flex items-center text-sm text-muted-foreground">
                               <Calendar className="w-4 h-4 mr-1 rtl:ml-1 rtl:mr-0" />
-                              {new Date(item.date).toLocaleDateString(
+                              {new Date(
+                                (item as any).createdAt
+                              ).toLocaleDateString(
                                 language === "ar" ? "ar-EG" : "en-US"
                               )}
                             </div>
@@ -422,6 +387,69 @@ export default function ArchivePage() {
                   : "Try adjusting your search criteria or filters"}
               </p>
             </motion.div>
+          )}
+          {!isLoading && items.length > 0 && totalPages > 1 && (
+            <div className="mt-10">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (page > 1) setPage(page - 1);
+                      }}
+                      className={
+                        page === 1 ? "pointer-events-none opacity-50" : ""
+                      }
+                    >
+                      {language === "ar" ? "السابق" : "Previous"}
+                    </PaginationPrevious>
+                  </PaginationItem>
+                  {(() => {
+                    const maxButtons = 5;
+                    const start = Math.max(
+                      1,
+                      Math.min(page - 2, totalPages - (maxButtons - 1))
+                    );
+                    const count = Math.min(totalPages, maxButtons);
+                    return Array.from({ length: count }).map((_, idx) => {
+                      const pageNumber = start + idx;
+                      return (
+                        <PaginationItem key={pageNumber}>
+                          <PaginationLink
+                            href="#"
+                            isActive={page === pageNumber}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setPage(pageNumber);
+                            }}
+                          >
+                            {pageNumber}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    });
+                  })()}
+                  <PaginationItem>
+                    <PaginationNext
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (page < totalPages) setPage(page + 1);
+                      }}
+                      className={
+                        page === totalPages
+                          ? "pointer-events-none opacity-50"
+                          : ""
+                      }
+                    >
+                      {language === "ar" ? "التالي" : "Next"}
+                    </PaginationNext>
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
           )}
         </div>
       </section>

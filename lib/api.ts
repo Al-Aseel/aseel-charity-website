@@ -1,4 +1,4 @@
-import { SliderImagesResponse, PartnersResponse, ActivitiesResponse, SingleActivityResponse, SettingsResponse, ProgramsResponse, SingleProgramResponse, ReportsResponse } from './types';
+import { SliderImagesResponse, PartnersResponse, ActivitiesResponse, SingleActivityResponse, SettingsResponse, ProgramsResponse, SingleProgramResponse, ReportsResponse, ArchiveResponse } from './types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api';
 const HOST_URL = process.env.NEXT_PUBLIC_HOST_URL || 'http://localhost:3001';
@@ -166,6 +166,23 @@ export const api = {
   // Send contact message
   sendMessage: (payload: { name: string; email: string; message: string; subject: string; contactInfo?: string }): Promise<any> => {
     return postApi<any, typeof payload>('/message', payload);
+  },
+  // Get archive combined data (program + activity)
+  getArchive: (
+    page: number = 1,
+    limit: number = 9,
+    types: string[] = ['program','activity'],
+    search?: string,
+    categoryId?: string
+  ): Promise<ArchiveResponse> => {
+    let endpoint = `/data?type=${encodeURIComponent(types.join(','))}&page=${page}&limit=${limit}`;
+    if (search && search.trim()) {
+      endpoint += `&search=${encodeURIComponent(search.trim())}`;
+    }
+    if (categoryId) {
+      endpoint += `&category=${encodeURIComponent(categoryId)}`;
+    }
+    return fetchApi<ArchiveResponse>(endpoint);
   },
 };
 
