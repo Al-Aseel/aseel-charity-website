@@ -268,3 +268,35 @@ export interface ArchiveData {
 }
 
 export type ArchiveResponse = ApiResponse<ArchiveData>;
+
+// Global Search Types
+export interface SearchPagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface SearchFilters {
+  search: string | null;
+  types: string[];
+  category: string | null;
+}
+
+export type SearchItem = (Program | Activity | Report) & {
+  type: 'program' | 'activity' | 'report';
+};
+
+export interface SearchCategoriesGroup {
+  name: string;
+  ids: Array<{ id: string; type: string }>;
+}
+
+export interface SearchData {
+  data: SearchItem[];
+  categories: SearchCategoriesGroup[];
+  pagination: SearchPagination;
+  filters: SearchFilters;
+}
+
+export type SearchResponse = ApiResponse<SearchData>;

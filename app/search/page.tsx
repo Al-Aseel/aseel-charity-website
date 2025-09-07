@@ -12,80 +12,18 @@ import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/components/language-provider";
 import PartnersSection from "@/components/partners-section";
 import { useSearchParams } from "next/navigation";
+import { api } from "@/lib/api";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import Link from "next/link";
 
-// Mock search data
-const searchData = [
-  {
-    id: 1,
-    type: "news",
-    title: {
-      ar: "توزيع 500 طرد غذائي على الأسر المحتاجة",
-      en: "Distribution of 500 food packages to needy families",
-    },
-    excerpt: {
-      ar: "نفذت الجمعية حملة توزيع طرود غذائية شملت 500 أسرة من الأسر الأكثر احتياجاً",
-      en: "The association implemented a food package distribution campaign for 500 families",
-    },
-    date: "2024-01-15",
-    category: "relief",
-  },
-  {
-    id: 2,
-    type: "program",
-    title: {
-      ar: "برنامج التدريب المهني للشباب",
-      en: "Youth Vocational Training Program",
-    },
-    excerpt: {
-      ar: "برنامج تدريبي شامل لتأهيل الشباب في مختلف المهن والحرف",
-      en: "Comprehensive training program to qualify youth in various professions",
-    },
-    date: "2023-09-01",
-    category: "training",
-  },
-  {
-    id: 3,
-    type: "report",
-    title: {
-      ar: "التقرير السنوي 2023",
-      en: "Annual Report 2023",
-    },
-    excerpt: {
-      ar: "تقرير شامل عن أنشطة ومشاريع الجمعية خلال عام 2023",
-      en: "Comprehensive report on association activities and projects during 2023",
-    },
-    date: "2024-01-01",
-    category: "administrative",
-  },
-  {
-    id: 4,
-    type: "news",
-    title: {
-      ar: "افتتاح مركز التدريب المهني الجديد",
-      en: "Opening of New Vocational Training Center",
-    },
-    excerpt: {
-      ar: "تم افتتاح مركز جديد للتدريب المهني في شمال غزة",
-      en: "A new vocational training center was opened in North Gaza",
-    },
-    date: "2024-01-10",
-    category: "training",
-  },
-  {
-    id: 5,
-    type: "program",
-    title: {
-      ar: "برنامج تمكين النساء اقتصادياً",
-      en: "Women Economic Empowerment Program",
-    },
-    excerpt: {
-      ar: "دعم النساء في إقامة مشاريع صغيرة مدرة للدخل",
-      en: "Supporting women in establishing small income-generating projects",
-    },
-    date: "2022-06-01",
-    category: "empowerment",
-  },
-];
+type ContentType = "all" | "activity" | "program" | "report";
 
 const contentTypes = [
   {
@@ -93,63 +31,154 @@ const contentTypes = [
     name: { ar: "جميع المحتويات", en: "All Content" },
     icon: FileText,
   },
-  { id: "news", name: { ar: "الأخبار", en: "News" }, icon: FileText },
+  { id: "activity", name: { ar: "الأخبار", en: "News" }, icon: FileText },
   { id: "program", name: { ar: "البرامج", en: "Programs" }, icon: Users },
   { id: "report", name: { ar: "التقارير", en: "Reports" }, icon: Award },
 ];
 
-const categories = [
-  { id: "all", name: { ar: "جميع الفئات", en: "All Categories" } },
-  { id: "relief", name: { ar: "إغاثة", en: "Relief" } },
-  { id: "training", name: { ar: "تدريب", en: "Training" } },
-  { id: "empowerment", name: { ar: "تمكين", en: "Empowerment" } },
-  { id: "administrative", name: { ar: "إداري", en: "Administrative" } },
-];
+interface SearchResultItem {
+  _id: string;
+  type: "activity" | "program" | "report";
+  name?: string; // activity/program
+  title?: string; // report
+  description?: string;
+  createdAt?: string;
+}
+
+interface CategoryPill {
+  id: string;
+  type: string;
+  name: string;
+}
+
+function ResultsSkeleton({ count = 5 }: { count?: number }) {
+  return (
+    <div className="space-y-6">
+      {Array.from({ length: count }).map((_, idx) => (
+        <div key={idx} className="hover:shadow-md transition-shadow">
+          <div className="border rounded-lg overflow-hidden">
+            <div className="p-6">
+              <div className="animate-pulse space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-6 w-20 bg-gray-200 rounded" />
+                  <div className="h-4 w-32 bg-gray-200 rounded" />
+                </div>
+                <div className="h-5 w-2/3 bg-gray-200 rounded" />
+                <div className="space-y-2">
+                  <div className="h-4 bg-gray-200 rounded" />
+                  <div className="h-4 w-5/6 bg-gray-200 rounded" />
+                  <div className="h-4 w-4/6 bg-gray-200 rounded" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function SearchPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedType, setSelectedType] = useState("all");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [searchResults, setSearchResults] = useState(searchData);
+  const [selectedType, setSelectedType] = useState<ContentType>("all");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [searchResults, setSearchResults] = useState<SearchResultItem[]>([]);
+  const [availableCategories, setAvailableCategories] = useState<
+    CategoryPill[]
+  >([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
   const { language, t } = useLanguage();
   const searchParams = useSearchParams();
   const queryParam = searchParams.get("q") ?? "";
 
+  // Load initial data from /search on first mount when no query provided
   useEffect(() => {
-    // لا تحدّث الحالة إلا إذا اختلفت قيمة معلمة q عن قيمة الحقل الحالي
+    if (!queryParam) {
+      fetchResults("", [], "all", 1, limit);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     if (queryParam !== searchQuery) {
       setSearchQuery(queryParam);
-      performSearch(queryParam);
+      setPage(1);
+      fetchResults(queryParam, selectedCategories, selectedType, 1, limit);
     }
-    // الاعتماد على قيمة queryParam فقط يضمن عدم الدخول في حلقة تحديث غير منتهية
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queryParam]);
 
-  const performSearch = (query: string) => {
-    if (!query.trim()) {
-      setSearchResults(searchData);
-      return;
+  const fetchResults = async (
+    query: string,
+    categoryIds: string[],
+    type: ContentType,
+    pageParam: number,
+    limitParam: number
+  ) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const categoryCsv = categoryIds.join(",");
+      const response = await api.globalSearch(
+        query,
+        categoryCsv,
+        pageParam,
+        limitParam
+      );
+
+      const mixed = response?.data?.data ?? [];
+      const items: SearchResultItem[] = (
+        Array.isArray(mixed) ? mixed : []
+      ).filter(Boolean) as SearchResultItem[];
+
+      // Filter by type on client if needed
+      const filteredByType =
+        type === "all" ? items : items.filter((it) => it.type === type);
+      setSearchResults(filteredByType);
+      setTotal(response?.data?.pagination?.total ?? filteredByType.length);
+      setTotalPages(response?.data?.pagination?.totalPages ?? 1);
+      setPage(response?.data?.pagination?.page ?? pageParam);
+
+      // Map categories from API
+      const cats = (response?.data?.categories ?? []).flatMap((c: any) =>
+        (c.ids || []).map((idObj: any) => ({
+          id: idObj.id as string,
+          type: idObj.type as string,
+          name: c.name as string,
+        }))
+      );
+      setAvailableCategories(cats);
+    } catch (e: any) {
+      setError(
+        e?.message || (language === "ar" ? "فشل الجلب" : "Failed to fetch")
+      );
+      setSearchResults([]);
+      setTotal(0);
+      setTotalPages(1);
+    } finally {
+      setLoading(false);
     }
-
-    const filtered = searchData.filter((item) => {
-      const titleMatch =
-        item.title.ar.toLowerCase().includes(query.toLowerCase()) ||
-        item.title.en.toLowerCase().includes(query.toLowerCase());
-      const excerptMatch =
-        item.excerpt.ar.toLowerCase().includes(query.toLowerCase()) ||
-        item.excerpt.en.toLowerCase().includes(query.toLowerCase());
-      const typeMatch = selectedType === "all" || item.type === selectedType;
-      const categoryMatch =
-        selectedCategory === "all" || item.category === selectedCategory;
-
-      return (titleMatch || excerptMatch) && typeMatch && categoryMatch;
-    });
-
-    setSearchResults(filtered);
   };
 
   const handleSearch = () => {
-    performSearch(searchQuery);
+    setPage(1);
+    fetchResults(searchQuery, selectedCategories, selectedType, 1, limit);
+  };
+
+  const toggleCategory = (id: string) => {
+    setSelectedCategories((prev) => {
+      const next = prev.includes(id)
+        ? prev.filter((c) => c !== id)
+        : [...prev, id];
+      setPage(1);
+      fetchResults(searchQuery, next, selectedType, 1, limit);
+      return next;
+    });
   };
 
   const getTypeIcon = (type: string) => {
@@ -159,7 +188,7 @@ export default function SearchPage() {
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case "news":
+      case "activity":
         return "bg-blue-100 text-blue-800";
       case "program":
         return "bg-green-100 text-green-800";
@@ -175,9 +204,18 @@ export default function SearchPage() {
     return typeObj ? typeObj.name[language] : type;
   };
 
+  const itemTitle = (it: SearchResultItem) => it.name || it.title || "";
+  const itemDate = (it: SearchResultItem) =>
+    it.createdAt || new Date().toISOString();
+  const itemExcerpt = (it: SearchResultItem) => it.description || "";
+  const itemLink = (it: SearchResultItem) => {
+    if (it.type === "activity") return `/news/${it._id}`;
+    if (it.type === "program") return `/programs/${it._id}`;
+    return `/reports`;
+  };
+
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
       <section className="py-16 bg-gradient-to-r from-primary/10 to-primary/5">
         <div className="container mx-auto px-4">
           <motion.div
@@ -195,17 +233,21 @@ export default function SearchPage() {
                 : "Search all website content including news, programs and reports"}
             </p>
 
-            {/* Search Bar */}
             <div className="max-w-2xl mx-auto">
               <div className="flex gap-2">
                 <Input
                   placeholder={t("search.placeholder")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                   className="text-lg h-12"
                 />
-                <Button onClick={handleSearch} size="lg" className="px-8">
+                <Button
+                  onClick={handleSearch}
+                  size="lg"
+                  className="px-8"
+                  disabled={loading}
+                >
                   <Search className="w-5 h-5 mr-2 rtl:ml-2 rtl:mr-0" />
                   {language === "ar" ? "بحث" : "Search"}
                 </Button>
@@ -215,11 +257,9 @@ export default function SearchPage() {
         </div>
       </section>
 
-      {/* Filters */}
       <section className="py-8 bg-background border-b">
         <div className="container mx-auto px-4">
           <div className="flex flex-col lg:flex-row gap-6">
-            {/* Content Type Filter */}
             <div className="flex-1">
               <h3 className="font-medium mb-3 flex items-center">
                 <Filter className="w-4 h-4 mr-2 rtl:ml-2 rtl:mr-0" />
@@ -229,11 +269,22 @@ export default function SearchPage() {
                 {contentTypes.map((type) => (
                   <Button
                     key={type.id}
-                    variant={selectedType === type.id ? "default" : "outline"}
+                    variant={
+                      selectedType === (type.id as ContentType)
+                        ? "default"
+                        : "outline"
+                    }
                     size="sm"
                     onClick={() => {
-                      setSelectedType(type.id);
-                      performSearch(searchQuery);
+                      const nextType = type.id as ContentType;
+                      setSelectedType(nextType);
+                      fetchResults(
+                        searchQuery,
+                        selectedCategories,
+                        nextType,
+                        1,
+                        limit
+                      );
                     }}
                     className="flex items-center"
                   >
@@ -244,25 +295,21 @@ export default function SearchPage() {
               </div>
             </div>
 
-            {/* Category Filter */}
             <div className="flex-1">
               <h3 className="font-medium mb-3">
-                {language === "ar" ? "الفئة:" : "Category:"}
+                {language === "ar" ? "الفئات :" : "Categories (API):"}
               </h3>
               <div className="flex flex-wrap gap-2">
-                {categories.map((category) => (
+                {availableCategories.map((c) => (
                   <Button
-                    key={category.id}
+                    key={`${c.id}-${c.type}`}
                     variant={
-                      selectedCategory === category.id ? "default" : "outline"
+                      selectedCategories.includes(c.id) ? "default" : "outline"
                     }
                     size="sm"
-                    onClick={() => {
-                      setSelectedCategory(category.id);
-                      performSearch(searchQuery);
-                    }}
+                    onClick={() => toggleCategory(c.id)}
                   >
-                    {category.name[language]}
+                    {c.name}
                   </Button>
                 ))}
               </div>
@@ -271,15 +318,14 @@ export default function SearchPage() {
         </div>
       </section>
 
-      {/* Search Results */}
       <section className="py-16">
         <div className="container mx-auto px-4">
           <div className="mb-8">
             <h2 className="text-2xl font-bold mb-2">{t("search.results")}</h2>
             <p className="text-muted-foreground">
               {language === "ar"
-                ? `تم العثور على ${searchResults.length} نتيجة`
-                : `Found ${searchResults.length} results`}
+                ? `تم العثور على ${total} نتيجة`
+                : `Found ${total} results`}
               {searchQuery && (
                 <span>
                   {language === "ar" ? ' لـ "' : ' for "'}
@@ -289,11 +335,15 @@ export default function SearchPage() {
             </p>
           </div>
 
-          {searchResults.length > 0 ? (
+          {loading ? (
+            <ResultsSkeleton count={5} />
+          ) : error ? (
+            <div className="text-center py-12 text-red-500">{error}</div>
+          ) : searchResults.length > 0 ? (
             <div className="space-y-6">
               {searchResults.map((result, index) => (
                 <motion.div
-                  key={result.id}
+                  key={`${result._id}-${index}`}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1, duration: 0.6 }}
@@ -308,13 +358,13 @@ export default function SearchPage() {
                             </Badge>
                             <div className="flex items-center text-sm text-muted-foreground">
                               <Calendar className="w-4 h-4 mr-1 rtl:ml-1 rtl:mr-0" />
-                              {new Date(result.date).toLocaleDateString(
+                              {new Date(itemDate(result)).toLocaleDateString(
                                 language === "ar" ? "ar-EG" : "en-US"
                               )}
                             </div>
                           </div>
                           <CardTitle className="text-xl hover:text-primary cursor-pointer">
-                            {result.title[language]}
+                            {itemTitle(result)}
                           </CardTitle>
                         </div>
                         <div className="flex-shrink-0">
@@ -325,14 +375,19 @@ export default function SearchPage() {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-muted-foreground mb-4">
-                        {result.excerpt[language]}
-                      </p>
+                      {itemExcerpt(result) && (
+                        <p className="text-muted-foreground mb-4">
+                          {itemExcerpt(result)}
+                        </p>
+                      )}
                       <Button
+                        asChild
                         variant="ghost"
                         className="p-0 h-auto font-medium text-primary hover:text-primary/80"
                       >
-                        {t("common.read-more")}
+                        <Link href={itemLink(result)}>
+                          {t("common.read-more")}
+                        </Link>
                       </Button>
                     </CardContent>
                   </Card>
@@ -356,10 +411,90 @@ export default function SearchPage() {
               </p>
             </motion.div>
           )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="mt-10">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (page > 1) {
+                          const newPage = page - 1;
+                          setPage(newPage);
+                          fetchResults(
+                            searchQuery,
+                            selectedCategories,
+                            selectedType,
+                            newPage,
+                            limit
+                          );
+                        }
+                      }}
+                    >
+                      {language === "ar" ? "السابق" : "Previous"}
+                    </PaginationPrevious>
+                  </PaginationItem>
+
+                  {/* Page numbers (simple) */}
+                  {Array.from({ length: totalPages }).map((_, idx) => {
+                    const pageNum = idx + 1;
+                    return (
+                      <PaginationItem key={pageNum}>
+                        <PaginationLink
+                          href="#"
+                          isActive={pageNum === page}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (pageNum !== page) {
+                              setPage(pageNum);
+                              fetchResults(
+                                searchQuery,
+                                selectedCategories,
+                                selectedType,
+                                pageNum,
+                                limit
+                              );
+                            }
+                          }}
+                        >
+                          {pageNum}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  })}
+
+                  <PaginationItem>
+                    <PaginationNext
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (page < totalPages) {
+                          const newPage = page + 1;
+                          setPage(newPage);
+                          fetchResults(
+                            searchQuery,
+                            selectedCategories,
+                            selectedType,
+                            newPage,
+                            limit
+                          );
+                        }
+                      }}
+                    >
+                      {language === "ar" ? "التالي" : "Next"}
+                    </PaginationNext>
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </div>
       </section>
 
-      {/* Partners Section */}
       <PartnersSection />
     </div>
   );

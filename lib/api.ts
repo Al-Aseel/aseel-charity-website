@@ -1,4 +1,4 @@
-import { SliderImagesResponse, PartnersResponse, ActivitiesResponse, SingleActivityResponse, SettingsResponse, ProgramsResponse, SingleProgramResponse, ReportsResponse, ArchiveResponse } from './types';
+import { SliderImagesResponse, PartnersResponse, ActivitiesResponse, SingleActivityResponse, SettingsResponse, ProgramsResponse, SingleProgramResponse, ReportsResponse, ArchiveResponse, SearchResponse } from './types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api';
 const HOST_URL = process.env.NEXT_PUBLIC_HOST_URL || 'http://localhost:3001';
@@ -183,6 +183,22 @@ export const api = {
       endpoint += `&category=${encodeURIComponent(categoryId)}`;
     }
     return fetchApi<ArchiveResponse>(endpoint);
+  },
+  // Global search
+  globalSearch: (
+    search?: string,
+    categoryIdsCsv?: string,
+    page: number = 1,
+    limit: number = 10
+  ): Promise<SearchResponse> => {
+    let endpoint = `/search?page=${page}&limit=${limit}`;
+    if (search && search.trim()) {
+      endpoint += `&search=${encodeURIComponent(search.trim())}`;
+    }
+    if (categoryIdsCsv && categoryIdsCsv.trim()) {
+      endpoint += `&category=${encodeURIComponent(categoryIdsCsv.trim())}`;
+    }
+    return fetchApi<SearchResponse>(endpoint);
   },
 };
 
