@@ -12,6 +12,7 @@ import PartnersSection from "@/components/partners-section";
 import Link from "next/link";
 import { api, getImageUrl } from "@/lib/api";
 import type { Activity, Program } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Pagination,
   PaginationContent,
@@ -128,14 +129,23 @@ export default function ArchivePage() {
             transition={{ duration: 0.6 }}
             className="text-center"
           >
-            <h1 className="text-4xl md:text-5xl font-bold mb-6">
-              {t("archive.title")}
-            </h1>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              {language === "ar"
-                ? "استعرض أرشيف شامل لجميع أنشطة ومشاريع الجمعية عبر السنوات"
-                : "Browse a comprehensive archive of all association activities and projects over the years"}
-            </p>
+            {isLoading ? (
+              <>
+                <Skeleton className="h-10 w-64 mx-auto mb-4" />
+                <Skeleton className="h-6 w-[36rem] max-w-full mx-auto" />
+              </>
+            ) : (
+              <>
+                <h1 className="text-4xl md:text-5xl font-bold mb-6">
+                  {t("archive.title")}
+                </h1>
+                <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+                  {language === "ar"
+                    ? "استعرض أرشيف شامل لجميع أنشطة ومشاريع الجمعية عبر السنوات"
+                    : "Browse a comprehensive archive of all association activities and projects over the years"}
+                </p>
+              </>
+            )}
           </motion.div>
         </div>
       </section>
@@ -146,15 +156,23 @@ export default function ArchivePage() {
           {/* Search Bar */}
           <div className="mb-6">
             <div className="max-w-md mx-auto relative">
-              <Search className="absolute left-3 rtl:right-3 rtl:left-auto top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-              <Input
-                placeholder={
-                  language === "ar" ? "ابحث في الأرشيف..." : "Search archive..."
-                }
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 rtl:pr-10 rtl:pl-3"
-              />
+              {isLoading ? (
+                <Skeleton className="h-10 w-full" />
+              ) : (
+                <>
+                  <Search className="absolute left-3 rtl:right-3 rtl:left-auto top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                  <Input
+                    placeholder={
+                      language === "ar"
+                        ? "ابحث في الأرشيف..."
+                        : "Search archive..."
+                    }
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 rtl:pr-10 rtl:pl-3"
+                  />
+                </>
+              )}
             </div>
           </div>
 
@@ -167,16 +185,22 @@ export default function ArchivePage() {
                 {language === "ar" ? "نوع المحتوى:" : "Content Type:"}
               </h3>
               <div className="flex flex-wrap gap-2">
-                {contentTypes.map((type) => (
-                  <Button
-                    key={type.id}
-                    variant={selectedType === type.id ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedType(type.id)}
-                  >
-                    {type.name[language]}
-                  </Button>
-                ))}
+                {isLoading
+                  ? Array.from({ length: 3 }).map((_, i) => (
+                      <Skeleton key={i} className="h-9 w-24" />
+                    ))
+                  : contentTypes.map((type) => (
+                      <Button
+                        key={type.id}
+                        variant={
+                          selectedType === type.id ? "default" : "outline"
+                        }
+                        size="sm"
+                        onClick={() => setSelectedType(type.id)}
+                      >
+                        {type.name[language]}
+                      </Button>
+                    ))}
               </div>
             </div>
 
@@ -186,33 +210,45 @@ export default function ArchivePage() {
                 {language === "ar" ? "الفئات:" : "Categories:"}
               </h3>
               <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={selectedCategory === "all" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedCategory("all")}
-                >
-                  {language === "ar" ? "الكل" : "All"}
-                </Button>
-                {categories.map((cat) => (
-                  <div key={cat.name} className="flex items-center gap-2">
-                    {cat.ids?.map((entry) => (
-                      <Button
-                        key={`${cat.name}-${entry.id}-${entry.type}`}
-                        variant={
-                          selectedCategory === entry.id ? "default" : "outline"
-                        }
-                        size="sm"
-                        onClick={() => {
-                          setSelectedCategory(entry.id || "all");
-                          setSelectedType(entry.type || "all");
-                        }}
-                        title={entry.type}
-                      >
-                        {`${cat.name} - ${entry.type === "program" ? (language === "ar" ? "برامج" : "Programs") : language === "ar" ? "أنشطة" : "Activities"}`}
-                      </Button>
+                {isLoading ? (
+                  Array.from({ length: 6 }).map((_, i) => (
+                    <Skeleton key={i} className="h-9 w-28" />
+                  ))
+                ) : (
+                  <>
+                    <Button
+                      variant={
+                        selectedCategory === "all" ? "default" : "outline"
+                      }
+                      size="sm"
+                      onClick={() => setSelectedCategory("all")}
+                    >
+                      {language === "ar" ? "الكل" : "All"}
+                    </Button>
+                    {categories.map((cat) => (
+                      <div key={cat.name} className="flex items-center gap-2">
+                        {cat.ids?.map((entry) => (
+                          <Button
+                            key={`${cat.name}-${entry.id}-${entry.type}`}
+                            variant={
+                              selectedCategory === entry.id
+                                ? "default"
+                                : "outline"
+                            }
+                            size="sm"
+                            onClick={() => {
+                              setSelectedCategory(entry.id || "all");
+                              setSelectedType(entry.type || "all");
+                            }}
+                            title={entry.type}
+                          >
+                            {`${cat.name} - ${entry.type === "program" ? (language === "ar" ? "برامج" : "Programs") : language === "ar" ? "أنشطة" : "Activities"}`}
+                          </Button>
+                        ))}
+                      </div>
                     ))}
-                  </div>
-                ))}
+                  </>
+                )}
               </div>
             </div>
           </div>
