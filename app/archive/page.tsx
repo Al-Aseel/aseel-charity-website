@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Filter, Calendar, Search, Grid, List } from "lucide-react";
+import { Filter, Calendar, Search, Grid, List, X, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/components/language-provider";
 import PartnersSection from "@/components/partners-section";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { api, getImageUrl } from "@/lib/api";
 import type { Activity, Program } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -51,12 +52,69 @@ export default function ArchivePage() {
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const { language, t } = useLanguage();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   // debounce search
   useEffect(() => {
     const id = setTimeout(() => setDebouncedSearch(searchQuery), 400);
     return () => clearTimeout(id);
   }, [searchQuery]);
+
+  // initialize from URL params
+  useEffect(() => {
+    const q = searchParams?.get("q") || "";
+    const type = searchParams?.get("type") || "all";
+    const cat = searchParams?.get("cat") || "all";
+    if (q) setSearchQuery(q);
+    if (type) setSelectedType(type);
+    if (cat) setSelectedCategory(cat as any);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ensure cursor stays in the search input on each search trigger
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    const len = el.value.length;
+    el.focus({ preventScroll: true });
+    try {
+      el.setSelectionRange(len, len);
+    } catch {
+      // noop: some browsers may not support setSelectionRange in certain states
+    }
+  }, [debouncedSearch]);
+
+  // after loading completes, keep the focus in the input as well
+  useEffect(() => {
+    if (isLoading) return;
+    const el = inputRef.current;
+    if (!el) return;
+    const len = el.value.length;
+    el.focus({ preventScroll: true });
+    try {
+      el.setSelectionRange(len, len);
+    } catch {}
+  }, [isLoading]);
+
+  // reflect filters/search in URL (shareable, back/forward friendly)
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (debouncedSearch) params.set("q", debouncedSearch);
+    if (selectedType && selectedType !== "all")
+      params.set("type", selectedType);
+    if (selectedCategory && selectedCategory !== "all")
+      params.set("cat", String(selectedCategory));
+    if (page > 1) params.set("page", String(page));
+    const qs = params.toString();
+    const url = `/archive${qs ? `?${qs}` : ""}`;
+    if (typeof window !== "undefined" && window.history?.replaceState) {
+      window.history.replaceState(null, "", url);
+    } else {
+      router.replace(url);
+    }
+  }, [debouncedSearch, selectedType, selectedCategory, page, router]);
 
   // fetch archive
   useEffect(() => {
@@ -155,22 +213,62 @@ export default function ArchivePage() {
         <div className="container mx-auto px-4">
           {/* Search Bar */}
           <div className="mb-6">
-            <div className="max-w-md mx-auto relative">
+            <div className="max-w-md mx-auto relative" role="search">
               {isLoading ? (
                 <Skeleton className="h-10 w-full" />
               ) : (
                 <>
-                  <Search className="absolute left-3 rtl:right-3 rtl:left-auto top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                  <Input
-                    placeholder={
-                      language === "ar"
-                        ? "ابحث في الأرشيف..."
-                        : "Search archive..."
-                    }
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 rtl:pr-10 rtl:pl-3"
+                  <Search
+                    className="absolute left-3 rtl:right-3 rtl:left-auto top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4"
+                    aria-hidden="true"
                   />
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      setDebouncedSearch(searchQuery);
+                    }}
+                  >
+                    <Input
+                      ref={inputRef}
+                      placeholder={
+                        language === "ar"
+                          ? "ابحث في الأرشيف..."
+                          : "Search archive..."
+                      }
+                      aria-label={
+                        language === "ar"
+                          ? "بحث في الأرشيف"
+                          : "Search the archive"
+                      }
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10 rtl:pr-10 rtl:pl-3 pr-20"
+                    />
+                  </form>
+                  {searchQuery && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute top-1/2 -translate-y-1/2 right-2 rtl:left-2 rtl:right-auto h-7 px-2"
+                      onClick={() => {
+                        setSearchQuery("");
+                        inputRef.current?.focus();
+                      }}
+                      aria-label={
+                        language === "ar" ? "مسح البحث" : "Clear search"
+                      }
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  )}
+                  {(isLoading ||
+                    (!!searchQuery && searchQuery !== debouncedSearch)) && (
+                    <Loader2
+                      className="absolute top-1/2 -translate-y-1/2 right-10 rtl:left-10 rtl:right-auto w-4 h-4 animate-spin text-muted-foreground"
+                      aria-hidden="true"
+                    />
+                  )}
                 </>
               )}
             </div>
