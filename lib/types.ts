@@ -167,7 +167,10 @@ export interface Program {
   coverImage: ProgramImage;
   description: string;
   gallery: ProgramImage[];
-  category: string;
+  category: {
+    id: string;
+    name: string;
+  };
   status: string;
   location: string;
   budget: number;
@@ -187,6 +190,10 @@ export interface Program {
 
 export interface ProgramsData {
   programs: Program[];
+  categories?: Array<{
+    name: string;
+    ids: Array<{ id: string; type: string }>;
+  }>;
   pagination: {
     page: number;
     limit: number;

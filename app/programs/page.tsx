@@ -64,15 +64,7 @@ const calculateDuration = (startDate: string, endDate: string): string => {
   }
 };
 
-const categories = [
-  { id: "all", name: { ar: "جميع البرامج", en: "All Programs" } },
-  { id: "relief", name: { ar: "إغاثة", en: "Relief" } },
-  { id: "training", name: { ar: "تدريب", en: "Training" } },
-  { id: "empowerment", name: { ar: "تمكين", en: "Empowerment" } },
-  { id: "support", name: { ar: "دعم نفسي", en: "Psychological Support" } },
-  { id: "health", name: { ar: "صحة", en: "Health" } },
-  { id: "education", name: { ar: "تعليم", en: "Education" } },
-];
+// Categories will be loaded from API response
 
 const statusOptions = [
   { id: "all", name: { ar: "جميع الحالات", en: "All Status" } },
@@ -82,9 +74,12 @@ const statusOptions = [
 ];
 
 export default function ProgramsPage() {
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState("all"); // stores category name or 'all'
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [programs, setPrograms] = useState<Program[]>([]);
+  const [apiCategories, setApiCategories] = useState<
+    Array<{ name: string; ids: Array<{ id: string; type: string }> }>
+  >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -100,6 +95,7 @@ export default function ProgramsPage() {
       setError(null);
       const response = await api.getPrograms(page, limit, search);
       setPrograms(response.data.programs);
+      setApiCategories(response.data.categories || []);
       setTotalPages(response.data.pagination.totalPages);
       setTotalPrograms(response.data.pagination.total);
       setCurrentPage(page);
@@ -127,8 +123,30 @@ export default function ProgramsPage() {
     fetchPrograms(page, searchTerm);
   };
 
-  // Note: Filtering is now handled by API, so we use programs directly
-  const filteredPrograms = programs;
+  // Client-side filter by selected category (by name). Status filter kept for future use if needed.
+  const filteredPrograms =
+    selectedCategory === "all"
+      ? programs
+      : programs.filter(
+          (p) => p.category && p.category.name === selectedCategory
+        );
+
+  const computedCategories = [
+    {
+      key: "all",
+      label: language === "ar" ? "جميع البرامج" : "All Programs",
+      count: programs.length,
+    },
+    ...apiCategories
+      // only categories that have program type in ids
+      .filter((c) => c.ids?.some((x) => x.type === "program"))
+      .map((c) => ({
+        key: c.name,
+        label: c.name,
+        count: programs.filter((p) => p.category && p.category.name === c.name)
+          .length,
+      })),
+  ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -211,16 +229,17 @@ export default function ProgramsPage() {
             <div className="flex flex-wrap gap-4">
               {/* Category Filter */}
               <div className="flex flex-wrap gap-2">
-                {categories.map((category) => (
+                {computedCategories.map((c) => (
                   <Button
-                    key={category.id}
-                    variant={
-                      selectedCategory === category.id ? "default" : "outline"
-                    }
+                    key={c.key}
+                    variant={selectedCategory === c.key ? "default" : "outline"}
                     size="sm"
-                    onClick={() => setSelectedCategory(category.id)}
+                    onClick={() => setSelectedCategory(c.key)}
                   >
-                    {category.name[language]}
+                    {c.label}
+                    <span className="ml-2 rtl:mr-2 rtl:ml-0 text-muted-foreground">
+                      ({c.count})
+                    </span>
                   </Button>
                 ))}
               </div>
