@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   MapPin,
@@ -13,6 +13,8 @@ import {
   Facebook,
   Twitter,
   Instagram,
+  Youtube,
+  MessageCircle,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,6 +22,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useLanguage } from "@/components/language-provider";
 import PartnersSection from "@/components/partners-section";
+import { useSettings } from "@/components/settings-provider";
+import { api } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -31,6 +36,8 @@ export default function ContactPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { language, t } = useLanguage();
+  const { settings } = useSettings();
+  const { toast } = useToast();
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -42,80 +49,129 @@ export default function ContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    try {
+      const payload = {
+        name: formData.name,
+        email: formData.email,
+        message: formData.message,
+        subject: formData.subject,
+        contactInfo: formData.phone || "",
+      };
+      await api.sendMessage(payload);
 
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+      setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
 
-    // Reset form
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      subject: "",
-      message: "",
-    });
-    setIsSubmitting(false);
-
-    // Show success message (you can implement a toast notification here)
-    alert(
-      language === "ar"
-        ? "تم إرسال رسالتك بنجاح!"
-        : "Your message has been sent successfully!"
-    );
+      toast({
+        title: language === "ar" ? "تم الإرسال" : "Sent",
+        description:
+          language === "ar"
+            ? "تم إرسال رسالتك بنجاح!"
+            : "Your message has been sent successfully!",
+      });
+    } catch (error) {
+      toast({
+        title: language === "ar" ? "فشل الإرسال" : "Send failed",
+        description:
+          language === "ar"
+            ? "حدث خطأ أثناء إرسال الرسالة. حاول مرة أخرى."
+            : "An error occurred while sending your message. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const contactInfo = [
-    {
-      icon: MapPin,
-      title: {
-        ar: "العنوان",
-        en: "Address",
+  const contactInfo = useMemo(() => {
+    return [
+      {
+        icon: MapPin,
+        title: { ar: "العنوان", en: "Address" },
+        content: {
+          ar: settings?.address || "",
+          en: settings?.address || "",
+        },
       },
-      content: {
-        ar: "غزة، فلسطين\nشارع الوحدة، مقابل مسجد الكلوت",
-        en: "Gaza, Palestine\nAl-Wahda Street, opposite Al-Kalout Mosque",
+      {
+        icon: Phone,
+        title: { ar: "الهاتف", en: "Phone" },
+        content: {
+          ar: settings?.contactNumber || "",
+          en: settings?.contactNumber || "",
+        },
       },
-    },
-    {
-      icon: Phone,
-      title: {
-        ar: "الهاتف",
-        en: "Phone",
+      {
+        icon: Mail,
+        title: { ar: "البريد الإلكتروني", en: "Email" },
+        content: {
+          ar: settings?.email || "",
+          en: settings?.email || "",
+        },
       },
-      content: {
-        ar: "+970 8 123 4567\n+970 59 123 4567",
-        en: "+970 8 123 4567\n+970 59 123 4567",
+      {
+        icon: Clock,
+        title: { ar: "ساعات العمل", en: "Working Hours" },
+        content: {
+          ar:
+            language === "ar"
+              ? "السبت - الخميس: 8:00 ص - 3:00 م"
+              : "Sunday - Thursday: 8:00 AM - 4:00 PM\nFriday: 8:00 AM - 12:00 PM",
+          en:
+            language === "ar"
+              ? "السبت - الخميس: 8:00 ص - 3:00 م"
+              : "Sunday - Thursday: 8:00 AM - 4:00 PM\nFriday: 8:00 AM - 12:00 PM",
+        },
       },
-    },
-    {
-      icon: Mail,
-      title: {
-        ar: "البريد الإلكتروني",
-        en: "Email",
-      },
-      content: {
-        ar: "info@aseel-charity.org\ncontact@aseel-charity.org",
-        en: "info@aseel-charity.org\ncontact@aseel-charity.org",
-      },
-    },
-    {
-      icon: Clock,
-      title: {
-        ar: "ساعات العمل",
-        en: "Working Hours",
-      },
-      content: {
-        ar: "الأحد - الخميس: 8:00 ص - 4:00 م\nالجمعة: 8:00 ص - 12:00 م",
-        en: "Sunday - Thursday: 8:00 AM - 4:00 PM\nFriday: 8:00 AM - 12:00 PM",
-      },
-    },
-  ];
+    ];
+  }, [settings, language]);
 
-  const socialLinks = [
-    { icon: Facebook, href: "#", label: "Facebook", color: "text-blue-600" },
-    { icon: Twitter, href: "#", label: "Twitter", color: "text-sky-500" },
-    { icon: Instagram, href: "#", label: "Instagram", color: "text-pink-600" },
-  ];
+  const socialLinks = useMemo(() => {
+    const links: { icon: any; href: string; label: string; color: string }[] =
+      [];
+    if (settings?.facebook) {
+      links.push({
+        icon: Facebook,
+        href: settings.facebook,
+        label: "Facebook",
+        color: "text-blue-600",
+      });
+    }
+    if (settings?.twitter) {
+      links.push({
+        icon: Twitter,
+        href: settings.twitter,
+        label: "Twitter",
+        color: "text-sky-500",
+      });
+    }
+    if (settings?.instagram) {
+      links.push({
+        icon: Instagram,
+        href: settings.instagram,
+        label: "Instagram",
+        color: "text-pink-600",
+      });
+    }
+    if (settings?.youtube) {
+      links.push({
+        icon: Youtube,
+        href: settings.youtube,
+        label: "YouTube",
+        color: "text-red-600",
+      });
+    }
+    if (settings?.whatsappNumber) {
+      const digits = settings.whatsappNumber.replace(/[^0-9]/g, "");
+      if (digits) {
+        links.push({
+          icon: MessageCircle,
+          href: `https://wa.me/${digits}`,
+          label: "WhatsApp",
+          color: "text-green-600",
+        });
+      }
+    }
+    return links;
+  }, [settings]);
 
   return (
     <div className="min-h-screen">
@@ -221,6 +277,7 @@ export default function ContactPage() {
                           id="phone"
                           name="phone"
                           type="tel"
+                          dir="ltr"
                           value={formData.phone}
                           onChange={handleInputChange}
                           placeholder={
@@ -328,7 +385,12 @@ export default function ContactPage() {
                             <h3 className="font-semibold text-lg mb-2">
                               {info.title[language]}
                             </h3>
-                            <p className="text-muted-foreground whitespace-pre-line">
+                            <p
+                              className="text-muted-foreground whitespace-pre-line"
+                              dir={
+                                info.title.en === "Phone" ? "ltr" : undefined
+                              }
+                            >
                               {info.content[language]}
                             </p>
                           </div>
@@ -360,6 +422,8 @@ export default function ContactPage() {
                           href={social.href}
                           className={`w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors ${social.color}`}
                           aria-label={social.label}
+                          target="_blank"
+                          rel="noopener noreferrer"
                         >
                           <social.icon className="w-5 h-5" />
                         </a>
@@ -378,13 +442,20 @@ export default function ContactPage() {
               >
                 <Card>
                   <CardContent className="p-0">
-                    <div className="aspect-video bg-gray-200 rounded-lg flex items-center justify-center">
-                      <div className="text-center">
-                        <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                        <p className="text-gray-500">
-                          {language === "ar" ? "خريطة الموقع" : "Location Map"}
-                        </p>
-                      </div>
+                    <div className="aspect-video rounded-lg overflow-hidden">
+                      <iframe
+                        title={
+                          language === "ar"
+                            ? "موقعنا على الخريطة"
+                            : "Our Location Map"
+                        }
+                        src={`https://www.google.com/maps?q=31.511111,34.453806&z=15&output=embed`}
+                        width="100%"
+                        height="100%"
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                        style={{ border: 0 }}
+                      />
                     </div>
                   </CardContent>
                 </Card>

@@ -6,6 +6,7 @@ import {
   Twitter,
   Instagram,
   Youtube,
+  MessageCircle,
   Mail,
   Phone,
   MapPin,
@@ -23,6 +24,16 @@ export default function Footer() {
     { icon: Twitter, href: settings?.twitter, label: "Twitter" },
     { icon: Instagram, href: settings?.instagram, label: "Instagram" },
     { icon: Youtube, href: settings?.youtube, label: "YouTube" },
+    (() => {
+      const digits = settings?.whatsappNumber?.replace(/[^0-9]/g, "");
+      return digits
+        ? {
+            icon: MessageCircle,
+            href: `https://wa.me/${digits}`,
+            label: "WhatsApp",
+          }
+        : { icon: MessageCircle, href: "", label: "WhatsApp" };
+    })(),
   ].filter((link) => link.href && link.href.trim() !== "");
 
   const quickLinks = [
@@ -115,6 +126,8 @@ export default function Footer() {
                   key={social.label}
                   href={social.href}
                   className="text-muted-foreground hover:text-primary transition-colors"
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
                   <social.icon className="h-5 w-5" />
                 </Link>

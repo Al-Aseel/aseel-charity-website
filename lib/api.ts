@@ -59,6 +59,48 @@ async function fetchApi<T>(endpoint: string): Promise<T> {
   }
 }
 
+async function postApi<TResponse, TBody>(endpoint: string, body: TBody): Promise<TResponse> {
+  const url = `${BASE_URL}${endpoint}`;
+  console.log('Posting to URL:', url, 'with body:', body);
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      throw new ApiError(
+        `HTTP error! status: ${response.status}`,
+        response.status,
+        response
+      );
+    }
+
+    const data = await response.json();
+    console.log('API POST Response data:', data);
+
+    if (data.status === 'sucsess') {
+      data.status = 'success';
+    }
+
+    return data;
+  } catch (error) {
+    console.error('API POST Error:', error);
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    throw new ApiError(
+      `Network error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      undefined,
+      undefined
+    );
+  }
+}
+
 export const api = {
   // Get slider images
   getSliderImages: (): Promise<SliderImagesResponse> => {
@@ -120,6 +162,10 @@ export const api = {
     
     console.log('Final endpoint:', endpoint);
     return fetchApi<ReportsResponse>(endpoint);
+  },
+  // Send contact message
+  sendMessage: (payload: { name: string; email: string; message: string; subject: string; contactInfo?: string }): Promise<any> => {
+    return postApi<any, typeof payload>('/message', payload);
   },
 };
 
