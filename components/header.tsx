@@ -19,6 +19,17 @@ export default function Header() {
   const { language, setLanguage, t } = useLanguage();
   const { getLogoUrl, getWebsiteName } = useSettings();
 
+  // Split website name into two lines (top/bottom)
+  const siteName = getWebsiteName(language);
+  const [nameTop, nameBottom] = (() => {
+    const parts = siteName.trim().split(/\s+/);
+    if (parts.length <= 1) return [siteName, ""];
+    return [
+      parts.slice(0, Math.ceil(parts.length / 2)).join(" "),
+      parts.slice(Math.ceil(parts.length / 2)).join(" "),
+    ];
+  })();
+
   const navigation = [
     { name: t("nav.home"), href: "/" },
     { name: t("nav.about"), href: "/about" },
@@ -51,8 +62,13 @@ export default function Header() {
                 priority
               />
             </div>
-            <span className="font-bold text-lg">
-              {getWebsiteName(language)}
+            <span className="flex flex-col leading-tight">
+              <span className="font-bold text-base md:text-lg">{nameTop}</span>
+              {nameBottom ? (
+                <span className="text-xs md:text-sm text-muted-foreground">
+                  {nameBottom}
+                </span>
+              ) : null}
             </span>
           </Link>
 
