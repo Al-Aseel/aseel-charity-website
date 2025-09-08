@@ -41,13 +41,16 @@ export default function Header() {
             href="/"
             className="flex items-center space-x-2 rtl:space-x-reverse"
           >
-            <Image
-              src={getLogoUrl()}
-              alt={getWebsiteName("ar")}
-              width={60}
-              height={60}
-              className="rounded-full"
-            />
+            <div className="relative h-12 w-12 md:h-14 md:w-14 rounded-full overflow-hidden ring-2 ring-primary shadow-sm bg-background">
+              <Image
+                src={getLogoUrl()}
+                alt={getWebsiteName("ar")}
+                fill
+                sizes="(min-width: 768px) 56px, 48px"
+                className="object-cover"
+                priority
+              />
+            </div>
             <span className="font-bold text-lg">
               {getWebsiteName(language)}
             </span>

@@ -4,7 +4,7 @@ import { useRef, useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay, EffectFade } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ImageOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/components/language-provider";
 import { useSettings } from "@/components/settings-provider";
@@ -131,21 +131,56 @@ export default function HeroSection() {
     );
   }
 
-  // Show error state when no slides available
+  // Show empty/error state when no slides available
   if (error || slides.length === 0) {
     return (
-      <section className="relative h-[90vh] overflow-hidden flex items-center justify-center bg-gray-100">
-        <div className="text-center">
-          <p className="text-lg text-red-600 mb-4">
-            {language === "ar"
-              ? "حدث خطأ في تحميل الصور"
-              : "Error loading images"}
-          </p>
-          <p className="text-sm text-gray-500">
-            {language === "ar"
-              ? "يرجى المحاولة مرة أخرى لاحقاً"
-              : "Please try again later"}
-          </p>
+      <section className="relative h-[90vh] overflow-hidden">
+        {/* Placeholder background */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(/placeholder.jpg)` }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/70" />
+
+        {/* Centered glass card */}
+        <div className="relative h-full flex items-center justify-center">
+          <div className="container mx-auto px-4">
+            <div className="mx-auto w-full max-w-xl rounded-2xl border border-[hsl(var(--primary)/0.25)] bg-background/60 backdrop-blur-md shadow-[0_10px_40px_hsl(var(--primary)/0.20)] p-8 text-center text-white">
+              <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-white/15 border border-white/20 flex items-center justify-center">
+                <ImageOff className="w-8 h-8 text-white/90" />
+              </div>
+              <h2 className="text-2xl font-bold mb-2">
+                {language === "ar"
+                  ? "لا توجد صور متاحة الآن"
+                  : "No images available"}
+              </h2>
+              <p className="text-white/80 mb-6">
+                {language === "ar"
+                  ? error
+                    ? "حدث خطأ أثناء تحميل الصور. يرجى المحاولة لاحقاً."
+                    : "سيتم عرض الشرائح هنا عند توفر صور."
+                  : error
+                    ? "An error occurred while loading images. Please try later."
+                    : "Slides will appear here when images are available."}
+              </p>
+              <div className="flex items-center justify-center">
+                <Button
+                  size="lg"
+                  className="bg-primary-custom hover:bg-primary-custom/90 transform hover:scale-105 transition-all duration-300 text-lg px-6 py-2 shadow-lg hover:shadow-xl"
+                  asChild
+                >
+                  <Link
+                    href="/programs"
+                    className="inline-flex items-center gap-2"
+                  >
+                    {language === "ar"
+                      ? "تعرف على مشاريعنا"
+                      : "Explore Our Projects"}
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
     );

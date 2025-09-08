@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Autoplay } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
-import { ChevronLeft, ChevronRight, Play, Pause } from "lucide-react";
+import { ChevronLeft, ChevronRight, Play, Pause, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/components/language-provider";
 import Link from "next/link";
@@ -131,6 +131,58 @@ export default function PartnersSection(): JSX.Element {
       ) : null}
     </motion.div>
   );
+
+  // Empty state when not loading and no partners
+  if (!isLoading && partners.length === 0) {
+    return (
+      <section className="py-16 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <motion.div
+            className="text-center mb-10"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            <h2 className="text-3xl md:text-4xl font-bold mb-3">
+              {t("home.partners.title")}
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              {language === "ar"
+                ? "سيتم عرض شعارات شركائنا هنا عند توفرها."
+                : "Partner logos will appear here when available."}
+            </p>
+          </motion.div>
+
+          <div className="max-w-2xl mx-auto">
+            <div className="rounded-2xl border border-[hsl(var(--primary)/0.20)] bg-background/60 backdrop-blur-md shadow-[0_10px_30px_hsl(var(--primary)/0.12)] p-8 text-center">
+              <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+                <Users className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">
+                {language === "ar" ? "لا يوجد شركاء حالياً" : "No partners yet"}
+              </h3>
+              <p className="text-muted-foreground mb-6">
+                {language === "ar"
+                  ? "نحن نعمل على تحديث قائمة الشركاء."
+                  : "We are working on updating the partners list."}
+              </p>
+              <div className="flex items-center justify-center">
+                <Button
+                  asChild
+                  className="bg-primary-custom hover:bg-primary-custom/90"
+                >
+                  <Link href="/contact">
+                    {language === "ar" ? "تواصل معنا" : "Contact us"}
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-16 bg-muted/30">
