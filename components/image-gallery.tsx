@@ -360,10 +360,10 @@ export default function ImageGallery({
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.3 }}
-              className="relative max-w-[90vw] max-h-[90vh] flex flex-col items-center justify-center"
+              className="relative w-full h-full flex flex-col items-center justify-center px-4"
             >
               <div
-                className="relative overflow-hidden rounded-lg"
+                className="relative overflow-hidden rounded-lg shadow-2xl"
                 style={{ transform: `scale(${zoom})` }}
               >
                 <img
@@ -372,7 +372,7 @@ export default function ImageGallery({
                     captions?.[currentIndex]?.[language] ||
                     `Image ${currentIndex + 1}`
                   }
-                  className="max-w-full max-h-[80vh] object-contain"
+                  className="max-w-[85vw] max-h-[75vh] w-auto h-auto object-contain"
                   onDoubleClick={() => (zoom === 1 ? zoomIn() : setZoom(1))}
                 />
               </div>

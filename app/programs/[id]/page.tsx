@@ -260,15 +260,18 @@ export default function ProgramDetailPage() {
             whileInView={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
-            className="aspect-video rounded-lg overflow-hidden"
+            className="relative w-full max-w-6xl mx-auto"
           >
-            <Image
-              src={getImageUrl(program.coverImage?.url) || "/placeholder.svg"}
-              alt={program.name}
-              fill
-              sizes="(max-width: 1024px) 100vw, 1024px"
-              className="object-cover"
-            />
+            <div className="aspect-[16/9] md:aspect-[21/9] lg:aspect-[24/9] rounded-lg overflow-hidden shadow-lg">
+              <Image
+                src={getImageUrl(program.coverImage?.url) || "/placeholder.svg"}
+                alt={program.name}
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 90vw, 1200px"
+                className="object-cover object-center"
+                priority
+              />
+            </div>
           </motion.div>
         </div>
       </section>

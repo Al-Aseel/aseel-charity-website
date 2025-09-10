@@ -1,14 +1,23 @@
-"use client"
+"use client";
 
-import { motion } from "framer-motion"
-import { Calendar, ArrowLeft, Share2, User, Tag, Eye, MapPin, Users } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { useLanguage } from "@/components/language-provider"
-import ImageGallery from "@/components/image-gallery"
-import Link from "next/link"
-import { useParams } from "next/navigation"
+import { motion } from "framer-motion";
+import {
+  Calendar,
+  ArrowLeft,
+  Share2,
+  User,
+  Tag,
+  Eye,
+  MapPin,
+  Users,
+} from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useLanguage } from "@/components/language-provider";
+import ImageGallery from "@/components/image-gallery";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 
 // Mock data for archive item details
 const archiveData = {
@@ -199,11 +208,22 @@ const archiveData = {
     ],
     tags: {
       ar: ["تدريب", "ريادة أعمال", "مشاريع صغيرة", "تطوير مهارات"],
-      en: ["Training", "Entrepreneurship", "Small Business", "Skill Development"],
+      en: [
+        "Training",
+        "Entrepreneurship",
+        "Small Business",
+        "Skill Development",
+      ],
     },
     views: 1580,
     achievements: {
-      ar: ["تدريب 40 متدرب ومتدربة", "3 أيام تدريبية مكثفة", "شهادات مشاركة معتمدة", "خبراء متخصصون", "جلسات تفاعلية"],
+      ar: [
+        "تدريب 40 متدرب ومتدربة",
+        "3 أيام تدريبية مكثفة",
+        "شهادات مشاركة معتمدة",
+        "خبراء متخصصون",
+        "جلسات تفاعلية",
+      ],
       en: [
         "Trained 40 male and female trainees",
         "3 intensive training days",
@@ -297,7 +317,13 @@ const archiveData = {
     ],
     tags: {
       ar: ["مؤتمر", "تنمية مجتمعية", "خبراء", "توصيات", "تعاون"],
-      en: ["Conference", "Community Development", "Experts", "Recommendations", "Cooperation"],
+      en: [
+        "Conference",
+        "Community Development",
+        "Experts",
+        "Recommendations",
+        "Cooperation",
+      ],
     },
     views: 3200,
     achievements: {
@@ -318,26 +344,30 @@ const archiveData = {
     },
     relatedItems: [1, 2],
   },
-}
+};
 
 export default function ArchiveDetailPage() {
-  const params = useParams()
-  const { language, t } = useLanguage()
-  const itemId = params.id as string
+  const params = useParams();
+  const { language, t } = useLanguage();
+  const itemId = params.id as string;
 
-  const item = archiveData[itemId as keyof typeof archiveData]
+  const item = archiveData[itemId as keyof typeof archiveData];
 
   if (!item) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">{language === "ar" ? "العنصر غير موجود" : "Item not found"}</h1>
+          <h1 className="text-2xl font-bold mb-4">
+            {language === "ar" ? "العنصر غير موجود" : "Item not found"}
+          </h1>
           <Button asChild>
-            <Link href="/archive">{language === "ar" ? "العودة للأرشيف" : "Back to Archive"}</Link>
+            <Link href="/archive">
+              {language === "ar" ? "العودة للأرشيف" : "Back to Archive"}
+            </Link>
           </Button>
         </div>
       </div>
-    )
+    );
   }
 
   const getTypeColor = (type: string) => {
@@ -348,9 +378,9 @@ export default function ArchiveDetailPage() {
       program: "bg-green-100 text-green-800",
       event: "bg-yellow-100 text-yellow-800",
       exhibition: "bg-pink-100 text-pink-800",
-    }
-    return colors[type as keyof typeof colors] || "bg-gray-100 text-gray-800"
-  }
+    };
+    return colors[type as keyof typeof colors] || "bg-gray-100 text-gray-800";
+  };
 
   const getTypeName = (type: string) => {
     const typeNames = {
@@ -360,20 +390,24 @@ export default function ArchiveDetailPage() {
       program: { ar: "برنامج", en: "Program" },
       event: { ar: "فعالية", en: "Event" },
       exhibition: { ar: "معرض", en: "Exhibition" },
-    }
-    return typeNames[type as keyof typeof typeNames]?.[language] || type
-  }
+    };
+    return typeNames[type as keyof typeof typeNames]?.[language] || type;
+  };
 
   const relatedItems = item.relatedItems
     .map((id) => archiveData[id.toString() as keyof typeof archiveData])
-    .filter(Boolean)
+    .filter(Boolean);
 
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="py-8 bg-gradient-to-r from-primary/5 to-primary/10">
         <div className="container mx-auto px-4">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
             <Button variant="ghost" asChild className="mb-4">
               <Link href="/archive" className="flex items-center">
                 <ArrowLeft className="w-4 h-4 mr-2 rtl:ml-2 rtl:mr-0" />
@@ -382,19 +416,28 @@ export default function ArchiveDetailPage() {
             </Button>
 
             <div className="flex items-center gap-3 mb-4">
-              <Badge className={getTypeColor(item.type)}>{getTypeName(item.type)}</Badge>
+              <Badge className={getTypeColor(item.type)}>
+                {getTypeName(item.type)}
+              </Badge>
               <div className="flex items-center text-sm text-muted-foreground">
                 <Calendar className="w-4 h-4 mr-1 rtl:ml-1 rtl:mr-0" />
-                {new Date(item.date).toLocaleDateString(language === "ar" ? "ar-EG" : "en-US")}
+                {new Date(item.date).toLocaleDateString(
+                  language === "ar" ? "ar-EG" : "en-US"
+                )}
               </div>
               <div className="flex items-center text-sm text-muted-foreground">
                 <Eye className="w-4 h-4 mr-1 rtl:ml-1 rtl:mr-0" />
-                {item.views.toLocaleString()} {language === "ar" ? "مشاهدة" : "views"}
+                {item.views.toLocaleString()}{" "}
+                {language === "ar" ? "مشاهدة" : "views"}
               </div>
             </div>
 
-            <h1 className="text-3xl md:text-4xl font-bold mb-4">{item.title[language]}</h1>
-            <p className="text-xl text-muted-foreground mb-6">{item.description[language]}</p>
+            <h1 className="text-3xl md:text-4xl font-bold mb-4">
+              {item.title[language]}
+            </h1>
+            <p className="text-xl text-muted-foreground mb-6">
+              {item.description[language]}
+            </p>
 
             <div className="flex items-center justify-between">
               <div className="flex items-center text-sm text-muted-foreground">
@@ -419,13 +462,15 @@ export default function ArchiveDetailPage() {
             whileInView={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
-            className="aspect-video rounded-lg overflow-hidden"
+            className="relative w-full max-w-6xl mx-auto"
           >
-            <img
-              src={item.images[0] || "/placeholder.svg"}
-              alt={item.title[language]}
-              className="w-full h-full object-cover"
-            />
+            <div className="aspect-[16/9] md:aspect-[21/9] lg:aspect-[24/9] rounded-lg overflow-hidden shadow-lg">
+              <img
+                src={item.images[0] || "/placeholder.svg"}
+                alt={item.title[language]}
+                className="w-full h-full object-cover object-center"
+              />
+            </div>
           </motion.div>
         </div>
       </section>
@@ -444,10 +489,14 @@ export default function ArchiveDetailPage() {
                 viewport={{ once: true }}
                 className="mb-8"
               >
-                <h2 className="text-2xl font-bold mb-4">{language === "ar" ? "التفاصيل" : "Details"}</h2>
+                <h2 className="text-2xl font-bold mb-4">
+                  {language === "ar" ? "التفاصيل" : "Details"}
+                </h2>
                 <div
                   className="prose prose-lg max-w-none text-muted-foreground leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: item.fullDescription[language] }}
+                  dangerouslySetInnerHTML={{
+                    __html: item.fullDescription[language],
+                  }}
                 />
               </motion.div>
 
@@ -459,10 +508,15 @@ export default function ArchiveDetailPage() {
                 viewport={{ once: true }}
                 className="mb-8"
               >
-                <h2 className="text-2xl font-bold mb-4">{language === "ar" ? "الإنجازات" : "Achievements"}</h2>
+                <h2 className="text-2xl font-bold mb-4">
+                  {language === "ar" ? "الإنجازات" : "Achievements"}
+                </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {item.achievements[language].map((achievement, index) => (
-                    <div key={index} className="flex items-center p-4 bg-muted/30 rounded-lg">
+                    <div
+                      key={index}
+                      className="flex items-center p-4 bg-muted/30 rounded-lg"
+                    >
                       <div className="w-2 h-2 bg-primary rounded-full mr-3 rtl:ml-3 rtl:mr-0"></div>
                       <span className="text-sm">{achievement}</span>
                     </div>
@@ -480,7 +534,9 @@ export default function ArchiveDetailPage() {
               >
                 <div className="flex items-center gap-2 mb-4">
                   <Tag className="w-4 h-4 text-muted-foreground" />
-                  <span className="font-medium">{language === "ar" ? "الكلمات المفتاحية:" : "Tags:"}</span>
+                  <span className="font-medium">
+                    {language === "ar" ? "الكلمات المفتاحية:" : "Tags:"}
+                  </span>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {item.tags[language].map((tag, index) => (
@@ -520,12 +576,15 @@ export default function ArchiveDetailPage() {
               >
                 <Card>
                   <CardContent className="p-6">
-                    <h3 className="font-bold text-lg mb-4">{language === "ar" ? "معلومات سريعة" : "Quick Info"}</h3>
+                    <h3 className="font-bold text-lg mb-4">
+                      {language === "ar" ? "معلومات سريعة" : "Quick Info"}
+                    </h3>
                     <div className="space-y-4">
                       <div className="flex items-center text-sm">
                         <Users className="w-4 h-4 mr-2 rtl:ml-2 rtl:mr-0 text-muted-foreground" />
                         <span>
-                          {item.beneficiaries.toLocaleString()} {language === "ar" ? "مستفيد" : "beneficiaries"}
+                          {item.beneficiaries.toLocaleString()}{" "}
+                          {language === "ar" ? "مستفيد" : "beneficiaries"}
                         </span>
                       </div>
 
@@ -540,7 +599,9 @@ export default function ArchiveDetailPage() {
                       </div>
 
                       <div className="flex items-center text-sm">
-                        <span className="w-4 h-4 mr-2 rtl:ml-2 rtl:mr-0 text-muted-foreground">💰</span>
+                        <span className="w-4 h-4 mr-2 rtl:ml-2 rtl:mr-0 text-muted-foreground">
+                          💰
+                        </span>
                         <span>{item.budget}</span>
                       </div>
                     </div>
@@ -571,7 +632,9 @@ export default function ArchiveDetailPage() {
                             <div className="flex gap-3">
                               <div className="w-16 h-16 flex-shrink-0">
                                 <img
-                                  src={relatedItem.images[0] || "/placeholder.svg"}
+                                  src={
+                                    relatedItem.images[0] || "/placeholder.svg"
+                                  }
                                   alt={relatedItem.title[language]}
                                   className="w-full h-full object-cover rounded"
                                 />
@@ -581,7 +644,11 @@ export default function ArchiveDetailPage() {
                                   {relatedItem.title[language]}
                                 </h4>
                                 <p className="text-xs text-muted-foreground mt-1">
-                                  {new Date(relatedItem.date).toLocaleDateString(language === "ar" ? "ar-EG" : "en-US")}
+                                  {new Date(
+                                    relatedItem.date
+                                  ).toLocaleDateString(
+                                    language === "ar" ? "ar-EG" : "en-US"
+                                  )}
                                 </p>
                               </div>
                             </div>
@@ -602,14 +669,18 @@ export default function ArchiveDetailPage() {
               >
                 <Card>
                   <CardContent className="p-6">
-                    <h3 className="font-bold text-lg mb-4">{language === "ar" ? "للاستفسار" : "For Inquiries"}</h3>
+                    <h3 className="font-bold text-lg mb-4">
+                      {language === "ar" ? "للاستفسار" : "For Inquiries"}
+                    </h3>
                     <p className="text-sm text-muted-foreground mb-4">
                       {language === "ar"
                         ? "للمزيد من المعلومات حول هذا النشاط"
                         : "For more information about this activity"}
                     </p>
                     <Button className="w-full" asChild>
-                      <Link href="/contact">{language === "ar" ? "اتصل بنا" : "Contact Us"}</Link>
+                      <Link href="/contact">
+                        {language === "ar" ? "اتصل بنا" : "Contact Us"}
+                      </Link>
                     </Button>
                   </CardContent>
                 </Card>
@@ -619,5 +690,5 @@ export default function ArchiveDetailPage() {
         </div>
       </section>
     </div>
-  )
+  );
 }
