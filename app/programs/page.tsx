@@ -21,6 +21,7 @@ import { useLanguage } from "@/components/language-provider";
 import PartnersSection from "@/components/partners-section";
 import Link from "next/link";
 import { api, getImageUrl } from "@/lib/api";
+import Image from "next/image";
 import { Program } from "@/lib/types";
 
 // Helper function to format budget
@@ -293,13 +294,15 @@ export default function ProgramsPage() {
                 >
                   <Card className="h-full hover:shadow-lg transition-shadow">
                     <div className="aspect-video relative overflow-hidden rounded-t-lg">
-                      <img
+                      <Image
                         src={
                           getImageUrl(program.coverImage?.url) ||
                           "/placeholder.svg"
                         }
                         alt={program.name}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="object-cover hover:scale-105 transition-transform duration-300"
                       />
                       <div className="absolute top-4 left-4 rtl:right-4 rtl:left-auto">
                         <Badge className={getStatusColor(program.status)}>

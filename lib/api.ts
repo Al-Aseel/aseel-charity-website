@@ -2,6 +2,9 @@ import { SliderImagesResponse, PartnersResponse, ActivitiesResponse, SingleActiv
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api';
 const HOST_URL = process.env.NEXT_PUBLIC_HOST_URL || 'http://localhost:3001';
+const DEFAULT_TIMEOUT_MS = Number(process.env.NEXT_PUBLIC_API_TIMEOUT_MS ?? 30000); // 30s default for slow networks
+const MAX_RETRIES = Number(process.env.NEXT_PUBLIC_API_MAX_RETRIES ?? 2);
+const RETRY_BACKOFF_MS = Number(process.env.NEXT_PUBLIC_API_RETRY_BACKOFF_MS ?? 1000);
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -13,92 +16,148 @@ export class ApiError extends Error {
   }
 }
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function shouldRetry(status?: number) {
+  if (status === undefined) return true; // network error
+  if (status === 408 || status === 429) return true;
+  if (status >= 500 && status < 600) return true;
+  return false;
+}
+
+async function fetchWithTimeout(input: string, init: RequestInit & { timeoutMs?: number } = {}) {
+  const controller = new AbortController();
+  const timeout = init.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  try {
+    const { timeoutMs, signal, ...rest } = init as any;
+    const response = await fetch(input, { ...rest, signal: controller.signal });
+    return response;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 async function fetchApi<T>(endpoint: string): Promise<T> {
   const url = `${BASE_URL}${endpoint}`;
   console.log('Fetching from URL:', url); // Debug log
   
-  try {
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      // Add cache control for better performance
-      next: { revalidate: 300 }, // Revalidate every 5 minutes
-    });
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const response = await fetchWithTimeout(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // Add cache control for better performance
+        next: { revalidate: 300 }, // Revalidate every 5 minutes
+        timeoutMs: DEFAULT_TIMEOUT_MS,
+      } as any);
 
-    if (!response.ok) {
+      if (!response.ok) {
+        const apiError = new ApiError(
+          `HTTP error! status: ${response.status}`,
+          response.status,
+          response
+        );
+        if (shouldRetry(response.status) && attempt < MAX_RETRIES) {
+          const backoff = RETRY_BACKOFF_MS * Math.pow(2, attempt);
+          await sleep(backoff);
+          continue;
+        }
+        throw apiError;
+      }
+
+      const data = await response.json();
+      console.log('API Response data:', data); // Debug log
+      
+      // Handle the typo in API response status
+      if (data.status === 'sucsess') {
+        data.status = 'success';
+      }
+      
+      return data;
+    } catch (error) {
+      lastError = error;
+      console.error('API Error:', error); // Debug log
+      const status = error instanceof ApiError ? error.status : undefined;
+      if (shouldRetry(status) && attempt < MAX_RETRIES) {
+        const backoff = RETRY_BACKOFF_MS * Math.pow(2, attempt);
+        await sleep(backoff);
+        continue;
+      }
+      if (error instanceof ApiError) {
+        throw error;
+      }
       throw new ApiError(
-        `HTTP error! status: ${response.status}`,
-        response.status,
-        response
+        `Network error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        undefined,
+        undefined
       );
     }
-
-    const data = await response.json();
-    console.log('API Response data:', data); // Debug log
-    
-    // Handle the typo in API response status
-    if (data.status === 'sucsess') {
-      data.status = 'success';
-    }
-    
-    return data;
-  } catch (error) {
-    console.error('API Error:', error); // Debug log
-    if (error instanceof ApiError) {
-      throw error;
-    }
-    
-    // Handle network errors
-    throw new ApiError(
-      `Network error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      undefined,
-      undefined
-    );
   }
+  throw lastError instanceof Error ? lastError : new Error('Unknown error');
 }
 
 async function postApi<TResponse, TBody>(endpoint: string, body: TBody): Promise<TResponse> {
   const url = `${BASE_URL}${endpoint}`;
   console.log('Posting to URL:', url, 'with body:', body);
 
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    });
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const response = await fetchWithTimeout(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+        timeoutMs: DEFAULT_TIMEOUT_MS,
+      } as any);
 
-    if (!response.ok) {
+      if (!response.ok) {
+        const apiError = new ApiError(
+          `HTTP error! status: ${response.status}`,
+          response.status,
+          response
+        );
+        if (shouldRetry(response.status) && attempt < MAX_RETRIES) {
+          const backoff = RETRY_BACKOFF_MS * Math.pow(2, attempt);
+          await sleep(backoff);
+          continue;
+        }
+        throw apiError;
+      }
+
+      const data = await response.json();
+      console.log('API POST Response data:', data);
+
+      if (data.status === 'sucsess') {
+        data.status = 'success';
+      }
+
+      return data;
+    } catch (error) {
+      console.error('API POST Error:', error);
+      const status = error instanceof ApiError ? error.status : undefined;
+      if (shouldRetry(status) && attempt < MAX_RETRIES) {
+        const backoff = RETRY_BACKOFF_MS * Math.pow(2, attempt);
+        await sleep(backoff);
+        continue;
+      }
+      if (error instanceof ApiError) {
+        throw error;
+      }
       throw new ApiError(
-        `HTTP error! status: ${response.status}`,
-        response.status,
-        response
+        `Network error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        undefined,
+        undefined
       );
     }
-
-    const data = await response.json();
-    console.log('API POST Response data:', data);
-
-    if (data.status === 'sucsess') {
-      data.status = 'success';
-    }
-
-    return data;
-  } catch (error) {
-    console.error('API POST Error:', error);
-    if (error instanceof ApiError) {
-      throw error;
-    }
-    throw new ApiError(
-      `Network error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      undefined,
-      undefined
-    );
   }
+  throw new ApiError('Network error: exceeded retries');
 }
 
 export const api = {

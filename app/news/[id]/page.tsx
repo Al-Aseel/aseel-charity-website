@@ -23,6 +23,7 @@ import { Activity } from "@/lib/types";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import ImageGallery from "@/components/image-gallery";
+import Image from "next/image";
 import PartnersSection from "@/components/partners-section";
 
 export default function NewsDetailPage() {
@@ -120,6 +121,27 @@ export default function NewsDetailPage() {
 
   return (
     <div className="min-h-screen">
+      {/* JSON-LD: NewsArticle */}
+      {activity && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "NewsArticle",
+              headline: activity.name,
+              datePublished: activity.createdAt,
+              author: activity.author
+                ? { "@type": "Person", name: activity.author }
+                : undefined,
+              description: activity.description,
+              image: activity.coverImage?.url
+                ? getImageUrl(activity.coverImage.url)
+                : undefined,
+            }),
+          }}
+        />
+      )}
       {/* Hero Section */}
       <section className="py-16 bg-gradient-to-r from-primary/10 to-primary/5">
         <div className="container mx-auto px-4">
@@ -270,13 +292,13 @@ export default function NewsDetailPage() {
               viewport={{ once: true }}
               className="aspect-video rounded-lg overflow-hidden"
             >
-              <img
+              <Image
                 src={getImageUrl(activity.coverImage.url)}
                 alt={activity.name}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = "/placeholder.svg";
-                }}
+                fill
+                sizes="(max-width: 1024px) 100vw, 1024px"
+                className="object-cover"
+                priority={false}
               />
             </motion.div>
           </div>
@@ -395,16 +417,14 @@ export default function NewsDetailPage() {
                             <div className="flex items-start space-x-3 rtl:space-x-reverse">
                               {relatedActivity.coverImage && (
                                 <div className="w-16 h-12 rounded overflow-hidden flex-shrink-0">
-                                  <img
+                                  <Image
                                     src={getImageUrl(
                                       relatedActivity.coverImage.url
                                     )}
                                     alt={relatedActivity.name}
-                                    className="w-full h-full object-cover"
-                                    onError={(e) => {
-                                      (e.target as HTMLImageElement).src =
-                                        "/placeholder.svg";
-                                    }}
+                                    fill
+                                    sizes="128px"
+                                    className="object-cover"
                                   />
                                 </div>
                               )}

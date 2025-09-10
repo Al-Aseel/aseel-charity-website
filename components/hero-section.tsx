@@ -1,10 +1,14 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
-import { Swiper, SwiperSlide } from "swiper/react";
+import {
+  Swiper as SwiperCore,
+  SwiperSlide as SwiperSlideCore,
+} from "swiper/react";
 import { Navigation, Pagination, Autoplay, EffectFade } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
 import { ChevronLeft, ChevronRight, ImageOff } from "lucide-react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/components/language-provider";
 import { useSettings } from "@/components/settings-provider";
@@ -101,6 +105,32 @@ export default function HeroSection() {
     }
   };
 
+  // Ensure navigation refs are attached after Swiper and buttons mount
+  useEffect(() => {
+    const swiper = swiperRef.current;
+    const prevEl = prevRef.current;
+    const nextEl = nextRef.current;
+
+    if (!swiper || !prevEl || !nextEl) return;
+
+    if (
+      typeof swiper.params.navigation !== "boolean" &&
+      swiper.params.navigation
+    ) {
+      swiper.params.navigation.prevEl = prevEl;
+      swiper.params.navigation.nextEl = nextEl;
+      // Re-init navigation to bind events to the newly assigned elements
+      try {
+        // Destroy first to avoid duplicate handlers if any
+        swiper.navigation.destroy();
+      } catch (_) {
+        // ignore if not initialized yet
+      }
+      swiper.navigation.init();
+      swiper.navigation.update();
+    }
+  }, [swiperRef.current, prevRef.current, nextRef.current]);
+
   // Show loading state (skeleton)
   if (loading) {
     return (
@@ -188,33 +218,57 @@ export default function HeroSection() {
 
   return (
     <section className="relative h-[90vh] overflow-hidden">
-      <Swiper
+      {/** Enable loop/autoplay only when we have 2+ slides to avoid Swiper warnings */}
+      {/** Compute once here to reuse across props */}
+      {(() => {
+        return null;
+      })()}
+      {/* Load Swiper only on client to cut JS for bots/SSR */}
+      <SwiperCore
+        key={slides.length > 1 ? "swiper-loop" : "swiper-single"}
         onSwiper={handleSwiperInit}
         onBeforeInit={handleBeforeInit}
-        modules={[Navigation, Pagination, Autoplay, EffectFade]}
+        modules={
+          slides.length > 1
+            ? [Navigation, Pagination, Autoplay, EffectFade]
+            : [EffectFade]
+        }
         spaceBetween={0}
         slidesPerView={1}
-        loop={true}
-        autoplay={{
-          delay: 5000,
-          disableOnInteraction: false,
-          pauseOnMouseEnter: true,
-        }}
+        loop={slides.length > 1}
+        autoplay={
+          slides.length > 1
+            ? {
+                delay: 5000,
+                disableOnInteraction: false,
+                pauseOnMouseEnter: true,
+              }
+            : false
+        }
         effect="fade"
         fadeEffect={{
           crossFade: true,
         }}
         speed={800}
-        navigation={{
-          prevEl: prevRef.current,
-          nextEl: nextRef.current,
-        }}
-        pagination={{
-          clickable: true,
-          bulletClass: "swiper-pagination-bullet hero-bullet",
-          bulletActiveClass:
-            "swiper-pagination-bullet-active hero-bullet-active",
-        }}
+        navigation={
+          slides.length > 1
+            ? {
+                prevEl: prevRef.current,
+                nextEl: nextRef.current,
+              }
+            : false
+        }
+        pagination={
+          slides.length > 1
+            ? {
+                clickable: true,
+                bulletClass: "swiper-pagination-bullet hero-bullet",
+                bulletActiveClass:
+                  "swiper-pagination-bullet-active hero-bullet-active",
+              }
+            : false
+        }
+        allowTouchMove={slides.length > 1}
         className="h-full"
         grabCursor={true}
         keyboard={{
@@ -227,14 +281,17 @@ export default function HeroSection() {
             language === "ar" ? "الشريحة التالية" : "Next slide",
         }}
       >
-        {slides.map((slide) => (
-          <SwiperSlide key={slide.id}>
+        {slides.map((slide, index) => (
+          <SwiperSlideCore key={slide.id}>
             <div className="relative h-full">
-              <div
-                className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-700 hover:scale-105"
-                style={{
-                  backgroundImage: `url(${slide.image})`,
-                }}
+              {/* Use next/image for better LCP/SEO instead of CSS background */}
+              <Image
+                src={slide.image}
+                alt={slide.title[language] || ""}
+                fill
+                priority={index === 0}
+                sizes="100vw"
+                className="object-cover transition-transform duration-700 hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/70" />
 
@@ -265,34 +322,51 @@ export default function HeroSection() {
                 </div>
               </div>
             </div>
-          </SwiperSlide>
+          </SwiperSlideCore>
         ))}
-      </Swiper>
+      </SwiperCore>
+
+      {/* No-JS fallback for SEO bots that don't execute JS: render first slide image */}
+      <noscript>
+        {slides[0] && (
+          <div className="absolute inset-0">
+            <img
+              src={slides[0].image}
+              alt={slides[0].title[language] || ""}
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          </div>
+        )}
+      </noscript>
 
       {/* Custom Navigation Arrows */}
-      <button
-        ref={prevRef}
-        className="invisible md:visible absolute left-4 rtl:right-4 rtl:left-auto top-1/2 -translate-y-1/2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white p-3 rounded-full transition-all duration-300 z-10 group hover:scale-110"
-        aria-label={language === "ar" ? "الشريحة السابقة" : "Previous slide"}
-      >
-        {language === "ar" ? (
-          <ChevronRight className="w-6 h-6 group-hover:translate-x-0.5 transition-transform" />
-        ) : (
-          <ChevronLeft className="w-6 h-6 group-hover:-translate-x-0.5 transition-transform" />
-        )}
-      </button>
+      {slides.length > 1 && (
+        <button
+          ref={prevRef}
+          className="invisible md:visible absolute left-4 rtl:right-4 rtl:left-auto top-1/2 -translate-y-1/2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white p-3 rounded-full transition-all duration-300 z-10 group hover:scale-110"
+          aria-label={language === "ar" ? "الشريحة السابقة" : "Previous slide"}
+        >
+          {language === "ar" ? (
+            <ChevronRight className="w-6 h-6 group-hover:translate-x-0.5 transition-transform" />
+          ) : (
+            <ChevronLeft className="w-6 h-6 group-hover:-translate-x-0.5 transition-transform" />
+          )}
+        </button>
+      )}
 
-      <button
-        ref={nextRef}
-        className=" invisible md:visible absolute right-4 rtl:left-4 rtl:right-auto top-1/2 -translate-y-1/2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white p-3 rounded-full transition-all duration-300 z-10 group hover:scale-110"
-        aria-label={language === "ar" ? "الشريحة التالية" : "Next slide"}
-      >
-        {language === "ar" ? (
-          <ChevronLeft className="w-6 h-6 group-hover:-translate-x-0.5 transition-transform" />
-        ) : (
-          <ChevronRight className="w-6 h-6 group-hover:translate-x-0.5 transition-transform" />
-        )}
-      </button>
+      {slides.length > 1 && (
+        <button
+          ref={nextRef}
+          className=" invisible md:visible absolute right-4 rtl:left-4 rtl:right-auto top-1/2 -translate-y-1/2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white p-3 rounded-full transition-all duration-300 z-10 group hover:scale-110"
+          aria-label={language === "ar" ? "الشريحة التالية" : "Next slide"}
+        >
+          {language === "ar" ? (
+            <ChevronLeft className="w-6 h-6 group-hover:-translate-x-0.5 transition-transform" />
+          ) : (
+            <ChevronRight className="w-6 h-6 group-hover:translate-x-0.5 transition-transform" />
+          )}
+        </button>
+      )}
     </section>
   );
 }

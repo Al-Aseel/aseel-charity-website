@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Search, Menu, Globe } from "lucide-react";
+import { Search, Menu, Globe, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -11,6 +11,7 @@ import { useLanguage } from "@/components/language-provider";
 import { useSettings } from "@/components/settings-provider";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { useTheme } from "next-themes";
 
 export default function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -18,6 +19,7 @@ export default function Header() {
   const pathname = usePathname();
   const { language, setLanguage, t } = useLanguage();
   const { getLogoUrl, getWebsiteName } = useSettings();
+  const { theme, setTheme } = useTheme();
 
   // Split website name into two lines (top/bottom)
   const siteName = getWebsiteName(language);
@@ -150,6 +152,19 @@ export default function Header() {
                 )}
               </AnimatePresence>
             </div>
+
+            {/* Theme Toggle */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="h-9 w-9 p-0"
+              aria-label="Toggle theme"
+            >
+              <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+              <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+              <span className="sr-only">Toggle theme</span>
+            </Button>
 
             {/* Language Toggle */}
             {/* <Button variant="ghost" size="sm" onClick={toggleLanguage} className="h-9 px-3">

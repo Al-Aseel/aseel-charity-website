@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { useLanguage } from "@/components/language-provider";
 import { api, getImageUrl } from "@/lib/api";
+import Image from "next/image";
 import { Activity, ActivitiesData } from "@/lib/types";
 import Link from "next/link";
 import NewsSkeleton from "@/components/news-skeleton";
@@ -293,18 +294,16 @@ export default function NewsPage() {
                 >
                   <Card className="h-full hover:shadow-lg transition-shadow">
                     <div className="aspect-video relative overflow-hidden rounded-t-lg">
-                      <img
+                      <Image
                         src={
                           activity.coverImage?.url
                             ? getImageUrl(activity.coverImage.url)
                             : "/placeholder.svg"
                         }
                         alt={activity.name || "Activity image"}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src =
-                            "/placeholder.svg";
-                        }}
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="object-cover hover:scale-105 transition-transform duration-300"
                       />
                       <div className="absolute top-4 left-4 rtl:right-4 rtl:left-auto">
                         <Badge

@@ -175,6 +175,29 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen">
+      {/* JSON-LD: ContactPage */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "ContactPage",
+            name: language === "ar" ? "اتصل بنا" : "Contact Us",
+            url:
+              typeof window !== "undefined"
+                ? window.location.href
+                : (process.env.NEXT_PUBLIC_HOST_URL ||
+                    "http://localhost:3000") + "/contact",
+            publisher: {
+              "@type": "Organization",
+              name: "جمعية أصيل للتنمية الخيرية",
+            },
+            contactPoint: settings?.contactNumber
+              ? [{ "@type": "ContactPoint", telephone: settings.contactNumber }]
+              : undefined,
+          }),
+        }}
+      />
       {/* Hero Section */}
       <section className="py-16 bg-gradient-to-r from-primary/10 to-primary/5">
         <div className="container mx-auto px-4">

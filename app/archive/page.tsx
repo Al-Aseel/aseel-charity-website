@@ -2,16 +2,39 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Filter, Calendar, Search, Grid, List, X, Loader2 } from "lucide-react";
+import {
+  Filter,
+  Calendar,
+  Search,
+  Grid,
+  List,
+  X,
+  Loader2,
+  ChevronDown,
+  Check,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
 import { useLanguage } from "@/components/language-provider";
 import PartnersSection from "@/components/partners-section";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api, getImageUrl } from "@/lib/api";
+import Image from "next/image";
 import type { Activity, Program } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -48,9 +71,11 @@ export default function ArchivePage() {
   const [selectedCategory, setSelectedCategory] = useState<string | "all">(
     "all"
   );
+  const [showAllCategories, setShowAllCategories] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [isCategoryPickerOpen, setIsCategoryPickerOpen] = useState(false);
   const { language, t } = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -307,7 +332,7 @@ export default function ArchivePage() {
               <h3 className="font-medium mb-3">
                 {language === "ar" ? "الفئات:" : "Categories:"}
               </h3>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 {isLoading ? (
                   Array.from({ length: 6 }).map((_, i) => (
                     <Skeleton key={i} className="h-9 w-28" />
@@ -323,28 +348,85 @@ export default function ArchivePage() {
                     >
                       {language === "ar" ? "الكل" : "All"}
                     </Button>
-                    {categories.map((cat) => (
-                      <div key={cat.name} className="flex items-center gap-2">
-                        {cat.ids?.map((entry) => (
-                          <Button
-                            key={`${cat.name}-${entry.id}-${entry.type}`}
-                            variant={
-                              selectedCategory === entry.id
-                                ? "default"
-                                : "outline"
-                            }
-                            size="sm"
-                            onClick={() => {
-                              setSelectedCategory(entry.id || "all");
-                              setSelectedType(entry.type || "all");
-                            }}
-                            title={entry.type}
+                    {(() => {
+                      const options = categories.flatMap((cat) =>
+                        (cat.ids || []).map((entry) => ({
+                          key: `${cat.name}-${entry.id}-${entry.type}`,
+                          id: entry.id,
+                          type: entry.type,
+                          label: `${cat.name} - ${
+                            entry.type === "program"
+                              ? language === "ar"
+                                ? "برامج"
+                                : "Programs"
+                              : language === "ar"
+                                ? "أنشطة"
+                                : "Activities"
+                          }`,
+                        }))
+                      );
+                      const selected = options.find(
+                        (o) => o.id === selectedCategory
+                      );
+                      return (
+                        <Popover
+                          open={isCategoryPickerOpen}
+                          onOpenChange={setIsCategoryPickerOpen}
+                        >
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="min-w-[12rem] justify-between"
+                            >
+                              {selected
+                                ? selected.label
+                                : language === "ar"
+                                  ? "اختر فئة"
+                                  : "Choose category"}
+                              <ChevronDown className="w-4 h-4 opacity-60" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent
+                            className="p-0 w-[22rem]"
+                            align="start"
                           >
-                            {`${cat.name} - ${entry.type === "program" ? (language === "ar" ? "برامج" : "Programs") : language === "ar" ? "أنشطة" : "Activities"}`}
-                          </Button>
-                        ))}
-                      </div>
-                    ))}
+                            <Command>
+                              <CommandInput
+                                placeholder={
+                                  language === "ar"
+                                    ? "بحث عن فئة..."
+                                    : "Search categories..."
+                                }
+                              />
+                              <CommandEmpty>
+                                {language === "ar"
+                                  ? "لا توجد نتائج"
+                                  : "No results found"}
+                              </CommandEmpty>
+                              <CommandGroup>
+                                {options.map((opt) => (
+                                  <CommandItem
+                                    key={opt.key}
+                                    value={opt.label}
+                                    onSelect={() => {
+                                      setSelectedCategory(opt.id || "all");
+                                      setSelectedType(opt.type || "all");
+                                      setIsCategoryPickerOpen(false);
+                                    }}
+                                  >
+                                    <Check
+                                      className={`${selectedCategory === opt.id ? "opacity-100" : "opacity-0"} w-4 h-4 mr-2 rtl:ml-2 rtl:mr-0`}
+                                    />
+                                    <span>{opt.label}</span>
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                      );
+                    })()}
                   </>
                 )}
               </div>
@@ -415,13 +497,15 @@ export default function ArchivePage() {
                   {viewMode === "grid" ? (
                     <Card className="h-full hover:shadow-lg transition-shadow">
                       <div className="aspect-video relative overflow-hidden rounded-t-lg">
-                        <img
+                        <Image
                           src={
                             getImageUrl((item as any).coverImage?.url) ||
                             "/placeholder.svg"
                           }
                           alt={(item as any).name}
-                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          className="object-cover hover:scale-105 transition-transform duration-300"
                         />
                         <div className="absolute top-4 left-4 rtl:right-4 rtl:left-auto">
                           <Badge className={getTypeColor((item as any).type)}>
@@ -461,14 +545,16 @@ export default function ArchivePage() {
                     <Card className="hover:shadow-md transition-shadow">
                       <CardContent className="p-6">
                         <div className="flex gap-4">
-                          <div className="w-24 h-24 flex-shrink-0">
-                            <img
+                          <div className="w-24 h-24 flex-shrink-0 relative">
+                            <Image
                               src={
                                 getImageUrl((item as any).coverImage?.url) ||
                                 "/placeholder.svg"
                               }
                               alt={(item as any).name}
-                              className="w-full h-full object-cover rounded"
+                              fill
+                              sizes="96px"
+                              className="object-cover rounded"
                             />
                           </div>
                           <div className="flex-1">

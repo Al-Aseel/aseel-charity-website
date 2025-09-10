@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useLanguage } from "@/components/language-provider";
 import ImageGallery from "@/components/image-gallery";
+import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { api, getImageUrl } from "@/lib/api";
@@ -261,10 +262,12 @@ export default function ProgramDetailPage() {
             viewport={{ once: true }}
             className="aspect-video rounded-lg overflow-hidden"
           >
-            <img
+            <Image
               src={getImageUrl(program.coverImage?.url) || "/placeholder.svg"}
               alt={program.name}
-              className="w-full h-full object-cover"
+              fill
+              sizes="(max-width: 1024px) 100vw, 1024px"
+              className="object-cover"
             />
           </motion.div>
         </div>
