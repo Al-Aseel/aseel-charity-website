@@ -292,13 +292,13 @@ export default function NewsDetailPage() {
               viewport={{ once: true }}
               className="relative w-full max-w-6xl mx-auto"
             >
-              <div className="aspect-[16/9] md:aspect-[21/9] lg:aspect-[24/9] rounded-lg overflow-hidden shadow-lg">
+              <div className="aspect-[16/9] md:aspect-[21/9] lg:aspect-[24/9] rounded-xl overflow-hidden shadow-lg">
                 <Image
                   src={getImageUrl(activity.coverImage.url)}
                   alt={activity.name}
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 90vw, 1200px"
-                  className="object-cover object-center"
+                  className="object-cover object-center rounded-xl"
                   priority={false}
                 />
               </div>

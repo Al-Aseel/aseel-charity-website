@@ -464,11 +464,11 @@ export default function ArchiveDetailPage() {
             viewport={{ once: true }}
             className="relative w-full max-w-6xl mx-auto"
           >
-            <div className="aspect-[16/9] md:aspect-[21/9] lg:aspect-[24/9] rounded-lg overflow-hidden shadow-lg">
+            <div className="aspect-[16/9] md:aspect-[21/9] lg:aspect-[24/9] rounded-xl overflow-hidden shadow-lg">
               <img
                 src={item.images[0] || "/placeholder.svg"}
                 alt={item.title[language]}
-                className="w-full h-full object-cover object-center"
+                className="w-full h-full object-cover object-center rounded-xl"
               />
             </div>
           </motion.div>
