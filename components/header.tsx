@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useLanguage } from "@/components/language-provider";
 import { useSettings } from "@/components/settings-provider";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import Image from "next/image";
 import { useTheme } from "next-themes";
 
@@ -76,40 +76,38 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-6 rtl:space-x-reverse">
-            {navigation.map((item) => (
-              <motion.div
-                key={item.href}
-                className="relative"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Link
-                  href={item.href}
-                  className={`text-lg font-medium transition-all duration-300 hover:text-primary relative ${
-                    pathname === item.href
-                      ? "text-primary"
-                      : "text-muted-foreground"
-                  }`}
+            <LayoutGroup id="desktop-nav">
+              {navigation.map((item) => (
+                <motion.div
+                  key={item.href}
+                  className="relative"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
-                  {item.name}
-                  {pathname === item.href && (
-                    <motion.div
-                      layoutId="activeTab"
-                      className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary rounded-full"
-                      initial={{ opacity: 0, scaleX: 0 }}
-                      animate={{ opacity: 1, scaleX: 1 }}
-                      exit={{ opacity: 0, scaleX: 0 }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 500,
-                        damping: 30,
-                        duration: 0.3,
-                      }}
-                    />
-                  )}
-                </Link>
-              </motion.div>
-            ))}
+                  <Link
+                    href={item.href}
+                    className={`text-lg font-medium transition-all duration-300 hover:text-primary relative ${
+                      pathname === item.href
+                        ? "text-primary"
+                        : "text-muted-foreground"
+                    }`}
+                  >
+                    {item.name}
+                    {pathname === item.href && (
+                      <motion.div
+                        layoutId="activeTab"
+                        className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary rounded-full"
+                        transition={{
+                          type: "spring",
+                          stiffness: 500,
+                          damping: 30,
+                        }}
+                      />
+                    )}
+                  </Link>
+                </motion.div>
+              ))}
+            </LayoutGroup>
           </nav>
 
           {/* Search and Language Toggle */}
@@ -185,39 +183,37 @@ export default function Header() {
               </SheetTrigger>
               <SheetContent side={language === "ar" ? "right" : "left"}>
                 <div className="flex flex-col space-y-4 mt-8">
-                  {navigation.map((item) => (
-                    <motion.div
-                      key={item.href}
-                      whileHover={{ x: 5, scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <Link
-                        href={item.href}
-                        className={`text-lg font-medium transition-all duration-300 hover:text-primary relative ${
-                          pathname === item.href
-                            ? "text-primary"
-                            : "text-muted-foreground"
-                        }`}
+                  <LayoutGroup id="mobile-nav">
+                    {navigation.map((item) => (
+                      <motion.div
+                        key={item.href}
+                        whileHover={{ x: 5, scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
                       >
-                        {item.name}
-                        {pathname === item.href && (
-                          <motion.div
-                            layoutId="mobileActiveTab"
-                            className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary rounded-full"
-                            initial={{ opacity: 0, scaleX: 0 }}
-                            animate={{ opacity: 1, scaleX: 1 }}
-                            exit={{ opacity: 0, scaleX: 0 }}
-                            transition={{
-                              type: "spring",
-                              stiffness: 500,
-                              damping: 30,
-                              duration: 0.3,
-                            }}
-                          />
-                        )}
-                      </Link>
-                    </motion.div>
-                  ))}
+                        <Link
+                          href={item.href}
+                          className={`text-lg font-medium transition-all duration-300 hover:text-primary relative ${
+                            pathname === item.href
+                              ? "text-primary"
+                              : "text-muted-foreground"
+                          }`}
+                        >
+                          {item.name}
+                          {pathname === item.href && (
+                            <motion.div
+                              layoutId="activeTab"
+                              className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary rounded-full"
+                              transition={{
+                                type: "spring",
+                                stiffness: 500,
+                                damping: 30,
+                              }}
+                            />
+                          )}
+                        </Link>
+                      </motion.div>
+                    ))}
+                  </LayoutGroup>
                 </div>
               </SheetContent>
             </Sheet>
