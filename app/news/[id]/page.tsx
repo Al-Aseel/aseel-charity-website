@@ -33,6 +33,32 @@ export default function NewsDetailPage() {
   const [relatedActivities, setRelatedActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+
+  // Extract YouTube video ID from various URL formats (youtu.be, youtube.com/watch, youtube.com/embed)
+  const extractYouTubeId = (url: string | undefined | null): string | null => {
+    if (!url) return null;
+    try {
+      const parsed = new URL(url);
+      // Short URL: https://youtu.be/VIDEO_ID
+      if (parsed.hostname.includes("youtu.be")) {
+        return parsed.pathname.replace("/", "").split("/")[0] || null;
+      }
+      // Standard: https://www.youtube.com/watch?v=VIDEO_ID
+      if (parsed.searchParams.has("v")) {
+        return parsed.searchParams.get("v");
+      }
+      // Embed or other path-based formats: /embed/VIDEO_ID or /v/VIDEO_ID
+      const parts = parsed.pathname.split("/").filter(Boolean);
+      const embedIndex = parts.findIndex((p) => p === "embed" || p === "v");
+      if (embedIndex !== -1 && parts[embedIndex + 1]) {
+        return parts[embedIndex + 1];
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -118,6 +144,11 @@ export default function NewsDetailPage() {
       </div>
     );
   }
+
+  // Safely extract possible video id from activity (backend may add `video` not in Activity type)
+  const videoId = extractYouTubeId(
+    (activity as unknown as { video?: string | null } | null)?.video ?? null
+  );
 
   return (
     <div className="min-h-screen">
@@ -326,6 +357,68 @@ export default function NewsDetailPage() {
                   <p className="text-muted-foreground leading-relaxed text-lg">
                     {activity.description}
                   </p>
+                </motion.div>
+              )}
+
+              {/* Video */}
+              {videoId && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6 }}
+                  viewport={{ once: true }}
+                >
+                  <h2 className="text-3xl font-bold mb-6">
+                    {language === "ar" ? "الفيديو" : "Video"}
+                  </h2>
+                  <div className="rounded-2xl overflow-hidden shadow-xl ring-1 ring-border/50 bg-muted/20">
+                    <div className="aspect-video relative">
+                      {isVideoPlaying ? (
+                        <iframe
+                          src={`https://www.youtube.com/embed/${videoId}?autoplay=1&modestbranding=1&rel=0&playsinline=1`}
+                          title={activity.name}
+                          loading="lazy"
+                          referrerPolicy="strict-origin-when-cross-origin"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                          allowFullScreen
+                          className="w-full h-full"
+                        />
+                      ) : (
+                        <button
+                          type="button"
+                          aria-label={
+                            language === "ar" ? "تشغيل الفيديو" : "Play video"
+                          }
+                          className="group w-full h-full"
+                          onClick={() => setIsVideoPlaying(true)}
+                        >
+                          <Image
+                            src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`}
+                            alt={activity.name}
+                            fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 90vw, 800px"
+                            className="object-cover"
+                            priority={false}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-black/30" />
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/90 text-primary shadow-lg group-hover:scale-105 transition-transform">
+                              {/* Play icon */}
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                                className="w-8 h-8"
+                                aria-hidden="true"
+                              >
+                                <path d="M8 5v14l11-7z" />
+                              </svg>
+                            </span>
+                          </div>
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </motion.div>
               )}
 
