@@ -82,7 +82,7 @@ export default function ContactPage() {
   };
 
   const contactInfo = useMemo(() => {
-    return [
+    const info = [
       {
         icon: MapPin,
         title: { ar: "العنوان", en: "Address" },
@@ -111,17 +111,16 @@ export default function ContactPage() {
         icon: Clock,
         title: { ar: "ساعات العمل", en: "Working Hours" },
         content: {
-          ar:
-            language === "ar"
-              ? "السبت - الخميس: 8:00 ص - 3:00 م"
-              : "Sunday - Thursday: 8:00 AM - 4:00 PM\nFriday: 8:00 AM - 12:00 PM",
-          en:
-            language === "ar"
-              ? "السبت - الخميس: 8:00 ص - 3:00 م"
-              : "Sunday - Thursday: 8:00 AM - 4:00 PM\nFriday: 8:00 AM - 12:00 PM",
+          ar: settings?.workingHours || "",
+          en: settings?.workingHours || "",
         },
       },
     ];
+    // Filter out items with empty content
+    return info.filter((item) => {
+      const content = item.content[language];
+      return content && content.trim() !== "";
+    });
   }, [settings, language]);
 
   const socialLinks = useMemo(() => {
