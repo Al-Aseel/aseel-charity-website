@@ -295,30 +295,46 @@ export default function HeroSection() {
               />
               <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/70" />
 
-              <div className="relative h-full flex items-center justify-center">
-                <div className="container mx-auto px-4 text-center text-white">
-                  <h1 className="text-4xl md:text-4xl lg:text-5xl font-bold mb-6 animate-fade-in-up leading-tight">
-                    {slide.title[language]}
-                  </h1>
+              <div className="relative h-full flex items-center justify-end">
+                <div className="container mx-auto px-10">
+                  {(() => {
+                    const titleText = slide.title[language]?.trim();
+                    const subtitleText = slide.subtitle[language]?.trim();
+                    const hasText = Boolean(titleText || subtitleText);
 
-                  <p className="text-lg md:text-xl lg:text-2xl mb-8 max-w-4xl mx-auto leading-relaxed animate-fade-in-up animation-delay-200 opacity-90">
-                    {slide.subtitle[language]}
-                  </p>
+                    return (
+                      <div className=" text-right ml-auto max-w-3xl text-white rtl:text-left">
+                        {titleText && (
+                          <h1 className="text-right text-2xl md:text-3xl lg:text-4xl font-bold mb-4 animate-fade-in-up leading-snug">
+                            {titleText}
+                          </h1>
+                        )}
 
-                  <div className="animate-fade-in-up animation-delay-400">
-                    <Button
-                      size="lg"
-                      className="bg-primary-custom hover:bg-primary-custom/90 transform hover:scale-105 transition-all duration-300 text-lg px-8 py-3 shadow-lg hover:shadow-xl text-white"
-                      asChild
-                    >
-                      <Link
-                        href="/programs"
-                        className="inline-flex items-center gap-2"
-                      >
-                        {slide.cta[language]}
-                      </Link>
-                    </Button>
-                  </div>
+                        {subtitleText && (
+                          <p className="text-right text-base md:text-lg lg:text-xl mb-6 leading-relaxed animate-fade-in-up animation-delay-200 opacity-90">
+                            {subtitleText}
+                          </p>
+                        )}
+
+                        {hasText && (
+                          <div className="text-right animate-fade-in-up animation-delay-400">
+                            <Button
+                              size="lg"
+                              className="bg-primary-custom hover:bg-primary-custom/90 transform hover:scale-105 transition-all duration-300 text-lg px-8 py-3 shadow-lg hover:shadow-xl text-white"
+                              asChild
+                            >
+                              <Link
+                                href="/programs"
+                                className="inline-flex items-center gap-2"
+                              >
+                                {slide.cta[language]}
+                              </Link>
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             </div>
