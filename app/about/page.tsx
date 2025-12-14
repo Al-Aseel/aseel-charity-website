@@ -4,7 +4,9 @@ import { motion } from "framer-motion";
 import { Target, Eye, Heart, Users, Award, Globe } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLanguage } from "@/components/language-provider";
+import { useSettings } from "@/components/settings-provider";
 import PartnersSection from "@/components/partners-section";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const values = [
   {
@@ -55,6 +57,23 @@ const values = [
 
 export default function AboutPage() {
   const { language, t } = useLanguage();
+  const { settings, loading } = useSettings();
+
+  // Get dynamic content from settings with fallbacks
+  const aboutUsText = settings?.aboutUs_ar || 
+    (language === "ar"
+      ? "جمعية أصيل للتنمية الخيرية هي مؤسسة أهلية غير ربحية تعمل في فلسطين لتمكين الفئات المهمشة ودعم صمود المجتمع الفلسطيني"
+      : "Aseel Charitable Development Association is a non-profit civil institution working in Palestine to empower marginalized groups and support Palestinian community resilience");
+
+  const visionText = settings?.vision_ar || 
+    (language === "ar"
+      ? "أن نكون المؤسسة الرائدة في مجال التنمية المجتمعية والعمل الإنساني في فلسطين، ونساهم في بناء مجتمع فلسطيني قادر على الصمود والتطور والازدهار رغم التحديات."
+      : "To be the leading institution in the field of community development and humanitarian work in Palestine, and contribute to building a Palestinian society capable of resilience, development and prosperity despite challenges.");
+
+  const missionText = settings?.mission_ar || 
+    (language === "ar"
+      ? "تمكين الفئات المهمشة في المجتمع الفلسطيني من خلال تقديم برامج تنموية وإنسانية مستدامة، وتعزيز قدراتهم الاقتصادية والاجتماعية والثقافية، مع التركيز على النساء والأطفال والشباب وذوي الاحتياجات الخاصة."
+      : "Empowering marginalized groups in Palestinian society through providing sustainable developmental and humanitarian programs, and enhancing their economic, social and cultural capabilities, with focus on women, children, youth and people with special needs.");
 
   return (
     <div className="min-h-screen">
@@ -70,11 +89,16 @@ export default function AboutPage() {
             <h1 className="text-4xl md:text-5xl font-bold mb-6">
               {t("about.title")}
             </h1>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              {language === "ar"
-                ? "جمعية أصيل للتنمية الخيرية هي مؤسسة أهلية غير ربحية تعمل في فلسطين لتمكين الفئات المهمشة ودعم صمود المجتمع الفلسطيني"
-                : "Aseel Charitable Development Association is a non-profit civil institution working in Palestine to empower marginalized groups and support Palestinian community resilience"}
-            </p>
+            {loading ? (
+              <div className="max-w-3xl mx-auto">
+                <Skeleton className="h-6 w-full mb-2" />
+                <Skeleton className="h-6 w-5/6 mx-auto" />
+              </div>
+            ) : (
+              <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+                {aboutUsText}
+              </p>
+            )}
           </motion.div>
         </div>
       </section>
@@ -99,11 +123,17 @@ export default function AboutPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground leading-relaxed">
-                    {language === "ar"
-                      ? "أن نكون المؤسسة الرائدة في مجال التنمية المجتمعية والعمل الإنساني في فلسطين، ونساهم في بناء مجتمع فلسطيني قادر على الصمود والتطور والازدهار رغم التحديات."
-                      : "To be the leading institution in the field of community development and humanitarian work in Palestine, and contribute to building a Palestinian society capable of resilience, development and prosperity despite challenges."}
-                  </p>
+                  {loading ? (
+                    <div>
+                      <Skeleton className="h-4 w-full mb-2" />
+                      <Skeleton className="h-4 w-full mb-2" />
+                      <Skeleton className="h-4 w-3/4" />
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground leading-relaxed">
+                      {visionText}
+                    </p>
+                  )}
                 </CardContent>
               </Card>
             </motion.div>
@@ -124,11 +154,17 @@ export default function AboutPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground leading-relaxed">
-                    {language === "ar"
-                      ? "تمكين الفئات المهمشة في المجتمع الفلسطيني من خلال تقديم برامج تنموية وإنسانية مستدامة، وتعزيز قدراتهم الاقتصادية والاجتماعية والثقافية، مع التركيز على النساء والأطفال والشباب وذوي الاحتياجات الخاصة."
-                      : "Empowering marginalized groups in Palestinian society through providing sustainable developmental and humanitarian programs, and enhancing their economic, social and cultural capabilities, with focus on women, children, youth and people with special needs."}
-                  </p>
+                  {loading ? (
+                    <div>
+                      <Skeleton className="h-4 w-full mb-2" />
+                      <Skeleton className="h-4 w-full mb-2" />
+                      <Skeleton className="h-4 w-3/4" />
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground leading-relaxed">
+                      {missionText}
+                    </p>
+                  )}
                 </CardContent>
               </Card>
             </motion.div>

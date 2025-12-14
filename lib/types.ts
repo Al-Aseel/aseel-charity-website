@@ -148,6 +148,9 @@ export interface WebsiteSettings {
   description: string;
   mainColor: string;
   workingHours: string;
+  aboutUs_ar?: string;
+  vision_ar?: string;
+  mission_ar?: string;
 }
 
 export type SettingsResponse = ApiResponse<WebsiteSettings>;
