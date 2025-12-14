@@ -293,7 +293,6 @@ export default function HeroSection() {
                 sizes="100vw"
                 className="object-cover transition-transform duration-700 hover:scale-105"
               />
-              <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/70" />
 
               <div className="relative h-full flex items-center justify-end">
                 <div className="container mx-auto px-10">
