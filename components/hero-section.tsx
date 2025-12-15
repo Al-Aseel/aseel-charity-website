@@ -283,35 +283,39 @@ export default function HeroSection() {
       >
         {slides.map((slide, index) => (
           <SwiperSlideCore key={slide.id}>
-            <div className="relative h-full">
-              {/* Use next/image for better LCP/SEO instead of CSS background */}
-              <Image
-                src={slide.image}
-                alt={slide.title[language] || ""}
-                fill
-                priority={index === 0}
-                sizes="100vw"
-                className="object-contain transition-transform duration-700 bg-black mx-auto"
-                style={{objectPosition: 'center'}}
-              />
+            <div className="relative w-full h-full flex items-center justify-center bg-black">
+              {/* Maintain 16:9 aspect ratio for all images */}
+              <div className="relative w-full max-w-screen-2xl aspect-[16/9] flex items-center justify-center">
+                <Image
+                  src={slide.image}
+                  alt={slide.title[language] || ""}
+                  fill
+                  priority={index === 0}
+                  sizes="100vw"
+                  className="object-contain transition-transform duration-700 bg-black"
+                  style={{objectPosition: 'center'}}
+                />
+              </div>
 
-              <div className="relative h-full flex items-center justify-end">
-                <div className="container mx-auto px-10">
+              {/* Overlay for text readability */}
+              <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/10 to-black/60 pointer-events-none z-10" />
+              <div className="absolute inset-0 flex items-center justify-end z-20">
+                <div className="container mx-auto px-4 md:px-10">
                   {(() => {
                     const titleText = slide.title[language]?.trim();
                     const subtitleText = slide.subtitle[language]?.trim();
                     const hasText = Boolean(titleText || subtitleText);
 
                     return (
-                      <div className=" text-right ml-auto max-w-3xl text-white rtl:text-left">
+                      <div className="text-right ml-auto max-w-2xl text-white rtl:text-left bg-black/40 rounded-xl p-4 md:p-6">
                         {titleText && (
-                          <h1 className="text-right text-xl md:text-2xl lg:text-3xl font-bold mb-4 animate-fade-in-up leading-snug">
+                          <h1 className="text-right text-base md:text-lg lg:text-2xl font-bold mb-2 animate-fade-in-up leading-snug">
                             {titleText}
                           </h1>
                         )}
 
                         {subtitleText && (
-                          <p className="text-right text-base md:text-lg lg:text-xl mb-6 leading-relaxed animate-fade-in-up animation-delay-200 opacity-90">
+                          <p className="text-right text-xs md:text-base lg:text-lg mb-4 leading-relaxed animate-fade-in-up animation-delay-200 opacity-90">
                             {subtitleText}
                           </p>
                         )}
@@ -319,8 +323,8 @@ export default function HeroSection() {
                         {hasText && (
                           <div className="text-right animate-fade-in-up animation-delay-400">
                             <Button
-                              size="lg"
-                              className="bg-primary-custom hover:bg-primary-custom/90 transform hover:scale-105 transition-all duration-300 text-lg px-8 py-3 shadow-lg hover:shadow-xl text-white"
+                              size="sm"
+                              className="bg-primary-custom hover:bg-primary-custom/90 transform hover:scale-105 transition-all duration-300 text-base px-6 py-2 shadow-lg hover:shadow-xl text-white"
                               asChild
                             >
                               <Link
