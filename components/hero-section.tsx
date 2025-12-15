@@ -291,7 +291,8 @@ export default function HeroSection() {
                 fill
                 priority={index === 0}
                 sizes="100vw"
-                className="object-cover transition-transform duration-700 hover:scale-105"
+                className="object-contain transition-transform duration-700 bg-black mx-auto"
+                style={{objectPosition: 'center'}}
               />
 
               <div className="relative h-full flex items-center justify-end">
@@ -304,7 +305,7 @@ export default function HeroSection() {
                     return (
                       <div className=" text-right ml-auto max-w-3xl text-white rtl:text-left">
                         {titleText && (
-                          <h1 className="text-right text-2xl md:text-3xl lg:text-4xl font-bold mb-4 animate-fade-in-up leading-snug">
+                          <h1 className="text-right text-xl md:text-2xl lg:text-3xl font-bold mb-4 animate-fade-in-up leading-snug">
                             {titleText}
                           </h1>
                         )}
